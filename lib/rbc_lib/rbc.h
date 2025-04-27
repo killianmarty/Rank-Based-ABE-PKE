@@ -1,0 +1,62 @@
+#ifndef RBC_LIB_H
+#define RBC_LIB_H
+
+#include "rbc_127.h"
+#include "rbc_127_elt.h"
+#include "rbc_127_vec.h"
+#include "rbc_127_poly.h"
+#include "rbc_127_qre.h"
+#include "rbc_127_vspace.h"
+#include "rbc_127_mat.h"
+#include "rbc_127_mat_fq.h"
+#include "rbc_127_perm.h"
+#include "rbc_127_isometry.h"
+#include "rbc_127_qpoly.h"
+
+#include "rbc_151.h"
+#include "rbc_151_elt.h"
+#include "rbc_151_vec.h"
+#include "rbc_151_poly.h"
+#include "rbc_151_qre.h"
+#include "rbc_151_vspace.h"
+#include "rbc_151_mat.h"
+#include "rbc_151_mat_fq.h"
+#include "rbc_151_perm.h"
+#include "rbc_151_isometry.h"
+#include "rbc_151_qpoly.h"
+
+#include "rbc_181.h"
+#include "rbc_181_elt.h"
+#include "rbc_181_vec.h"
+#include "rbc_181_poly.h"
+#include "rbc_181_qre.h"
+#include "rbc_181_vspace.h"
+#include "rbc_181_mat.h"
+#include "rbc_181_mat_fq.h"
+#include "rbc_181_perm.h"
+#include "rbc_181_isometry.h"
+#include "rbc_181_qpoly.h"
+
+
+#include "rbc_127_gabidulin.h"
+#include "rbc_151_gabidulin.h"
+#include "rbc_181_gabidulin.h"
+
+#include "rbc_127_lrpc.h"
+#include "rbc_151_lrpc.h"
+#include "rbc_181_lrpc.h"
+
+#include "rqc_128_kem.h"
+#include "rqc_128_parsing.h"
+#include "rqc_128_pke.h"
+#include "rqc_128_parameters.h"
+#include "rqc_192_kem.h"
+#include "rqc_192_parsing.h"
+#include "rqc_192_pke.h"
+#include "rqc_192_parameters.h"
+#include "rqc_256_kem.h"
+#include "rqc_256_parsing.h"
+#include "rqc_256_pke.h"
+#include "rqc_256_parameters.h"
+
+#endif
