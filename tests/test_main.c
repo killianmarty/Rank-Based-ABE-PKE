@@ -11,16 +11,12 @@
 #include "bloomfilter.h"
 
 int test_keygen(PublicKey *testPub, PrivateKey *testPriv){
-    keygen(testPub, testPriv);
-
-    return 1;
+    return keygen(testPub, testPriv);
 }
 
 int test_encaps(PublicKey *testPub, uint8_t *shared_secret, rbc_181_qre cipher){
     Message msg;
-    encaps(testPub, NULL, 0, shared_secret, &msg);
-
-    return 1;
+    return encaps(testPub, NULL, 0, shared_secret, &msg);
 }
 
 int test_decaps(uint8_t *shared_secret, rbc_181_qre cipher, PrivateKey *testPriv){
@@ -77,10 +73,10 @@ int test_H_bloomfilter(){
 
     bloom_filter_init(&bf, BLOOM_FILTER_SIZE, NUM_HASH_FUNCTIONS, HASH_LEN, salts, SALT_SIZE);
 
-    char *strings[100];
+    char *strings[1000];
     size_t string_length = 10000;
 
-    for (size_t i = 0; i < 100; i++) {
+    for (size_t i = 0; i < 1000; i++) {
         strings[i] = (char *)malloc(string_length + 1);
         for (size_t j = 0; j < string_length; j++) {
             strings[i][j] = 'a' + (rand() % 26);
@@ -117,25 +113,55 @@ int test_scheme(){
         PublicKey testPub;
         PrivateKey testPriv;
         Message msg;
+        Attribute wanted[10];
+        Attribute available[20];
+        for(int i = 0; i < 10; i++){
+            char *key = malloc(sizeof(char)*ATTRIBUTE_KEY_SIZE);
+            char *val = malloc(sizeof(char)*ATTRIBUTE_VALUE_SIZE);
+            for (size_t j = 0; j < ATTRIBUTE_KEY_SIZE-1; j++) key[j] = (rand() % 26 + 30);
+            for (size_t j = 0; j < ATTRIBUTE_VALUE_SIZE-1; j++) val[j] = (rand() % 26 + 30);
+            key[ATTRIBUTE_KEY_SIZE-1] = '\0';
+            val[ATTRIBUTE_VALUE_SIZE-1] = '\0';
+            sprintf(wanted[i].key, "%s", key);
+            sprintf(wanted[i].value, "%s", val);
+            sprintf(available[i].key, "%s", key);
+            sprintf(available[i].value, "%s", val);
+            free(key);
+            free(val);
+        }
+        for(int i = 10; i < 20; i++){
+            char *key = malloc(sizeof(char)*ATTRIBUTE_KEY_SIZE);
+            char *val = malloc(sizeof(char)*ATTRIBUTE_VALUE_SIZE);
+            for (size_t j = 0; j < ATTRIBUTE_KEY_SIZE-1; j++) key[j] = (rand() % 26 + 30);
+            for (size_t j = 0; j < ATTRIBUTE_VALUE_SIZE-1; j++) val[j] = (rand() % 26 + 30);
+            key[ATTRIBUTE_KEY_SIZE-1] = '\0';
+            val[ATTRIBUTE_VALUE_SIZE-1] = '\0';
+            sprintf(available[i].key, "%s", key);
+            sprintf(available[i].value, "%s", val);
+            free(key);
+            free(val);
+        }
 
         keygen(&testPub, &testPriv);
 
         uint8_t shared_secret[SECRET_KEY_BYTES];
-        encaps(&testPub, NULL, 0, shared_secret, &msg);
+        encaps(&testPub, wanted, 10, shared_secret, &msg);
 
         uint8_t decapsed_secret[SECRET_KEY_BYTES];
-        decaps(&testPriv, &msg, NULL, 0, decapsed_secret);
-
+        int res = decaps(&testPriv, &msg, available, 20, decapsed_secret);
+        if(res == 0) return 0;
+        
         if (memcmp(shared_secret, decapsed_secret, SECRET_KEY_BYTES) != 0)
         {
             return 0;
         }
-
+        
         rbc_181_qre_clear(msg.cipher);
         rbc_181_qre_clear(testPub.h);
         rbc_181_qre_clear(testPriv.x);
         rbc_181_qre_clear(testPriv.y);
         rbc_181_vspace_clear(testPriv.F);
+        
     }
     
 

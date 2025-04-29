@@ -4,6 +4,6 @@
 
 #include "utils.h"
 
-void keygen(PublicKey *pub, PrivateKey *priv);
+int keygen(PublicKey *pub, PrivateKey *priv);
 
 #endif

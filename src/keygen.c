@@ -2,7 +2,7 @@
 #include "utils.h"
 
 
-void keygen(PublicKey *pub, PrivateKey *priv){
+int keygen(PublicKey *pub, PrivateKey *priv){
 
     // Declarations
     random_source prng;
@@ -38,4 +38,6 @@ void keygen(PublicKey *pub, PrivateKey *priv){
     rbc_181_qre_clear(inv);
     random_source_clear(&sk_seedexpander);
     random_source_clear(&prng);
+
+    return 1;
 }

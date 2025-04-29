@@ -13,29 +13,29 @@ int bloom_filter_init(BloomFilter *bf, int size, int num_hash_functions, int has
     return 0;
 }
 
-int bloom_filter_add(BloomFilter *bf, char *str) {
+int bloom_filter_add(BloomFilter *bf, char *str) {  
     if (!bf || !str) return -1;
 
     size_t str_len = strlen(str);
     for (int i = 0; i < bf->num_hash_functions; ++i) {
 
-        unsigned char *buf = malloc(bf->salt_len + str_len);
+        uint8_t *buf = calloc((bf->salt_len + str_len), sizeof(uint8_t));
         memcpy(buf, bf->salts[i], bf->salt_len);
         memcpy(buf + bf->salt_len, str, str_len);
 
         unsigned char hash[SHA256_DIGEST_LENGTH];
         SHA256(buf, bf->salt_len + str_len, hash);
         free(buf);
-
+        
         uint32_t hv = ((uint32_t)hash[0] << 24) |
                       ((uint32_t)hash[1] << 16) |
                       ((uint32_t)hash[2] << 8)  |
                       ((uint32_t)hash[3]);
 
-        uint32_t bit_idx = hv % bf->size * 8;
+        uint32_t bit_idx = hv % bf->size;
         uint32_t byte_idx = bit_idx / 8;
         uint8_t  bit_mask = 1 << (bit_idx % 8);
-
+        
         bf->bit_array[byte_idx] |= bit_mask;
     }
 
@@ -44,11 +44,11 @@ int bloom_filter_add(BloomFilter *bf, char *str) {
 
 int bloom_filter_check(BloomFilter *bf, char *str) {
     if (!bf || !str) return 0;
-
+    
     size_t str_len = strlen(str);
     for (int i = 0; i < bf->num_hash_functions; ++i) {
 
-        unsigned char *buf = malloc(bf->salt_len + str_len);
+        uint8_t *buf = calloc((bf->salt_len + str_len), sizeof(uint8_t));
         memcpy(buf, bf->salts[i], bf->salt_len);
         memcpy(buf + bf->salt_len, str, str_len);
 
@@ -61,7 +61,7 @@ int bloom_filter_check(BloomFilter *bf, char *str) {
                       ((uint32_t)hash[2] << 8)  |
                       ((uint32_t)hash[3]);
 
-        uint32_t bit_idx = hv % bf->size * 8;
+        uint32_t bit_idx = hv % bf->size;
         uint32_t byte_idx = bit_idx / 8;
         uint8_t  bit_mask = 1 << (bit_idx % 8);
 

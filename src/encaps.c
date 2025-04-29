@@ -1,6 +1,6 @@
 #include "encaps.h"
 
-void encaps(PublicKey *pub, Attribute *attributes, int nbAttributes, uint8_t *shared_secret, Message *msg){
+int encaps(PublicKey *pub, Attribute *attributes, int nbAttributes, uint8_t *shared_secret, Message *msg){
 
     // Declarations
     rbc_181_vspace E;
@@ -20,21 +20,24 @@ void encaps(PublicKey *pub, Attribute *attributes, int nbAttributes, uint8_t *sh
     rbc_181_qre_init(&(msg->cipher));
 
 
-    // Fill bloom filters
+    // Generate salts and init bloom filters
     uint8_t ** salts = malloc(NUM_HASH_FUNCTIONS * sizeof(uint8_t*));
     for (int i = 0; i < NUM_HASH_FUNCTIONS; i++) {
         salts[i] = malloc(SALT_SIZE * sizeof(uint8_t));
         random_source_get_bytes(&prng, salts[i], SALT_SIZE);
+        salts[i][SALT_SIZE-1]='\0';
     }
     bloom_filter_init(&bf_att, BLOOM_FILTER_SIZE, NUM_HASH_FUNCTIONS, HASH_LEN, salts, SALT_SIZE);
     bloom_filter_init(&bf_keys, BLOOM_FILTER_SIZE, NUM_HASH_FUNCTIONS, HASH_LEN, salts, SALT_SIZE);
 
+
+    // Fill bloom filters
     for (int i = 0; i < nbAttributes; i++) {
         char attribute_string[ATTRIBUTE_STRING_SIZE] = {0};
         attribute_to_string(&attributes[i], attribute_string);
 
-        bloom_filter_add(&bf_att, attributes[i].key);
-        bloom_filter_add(&bf_keys, attribute_string);
+        bloom_filter_add(&bf_att, attribute_string);
+        bloom_filter_add(&bf_keys, attributes[i].key);
     }
     
 
@@ -66,5 +69,6 @@ void encaps(PublicKey *pub, Attribute *attributes, int nbAttributes, uint8_t *sh
     rbc_181_qre_clear(E1);
     rbc_181_qre_clear(E2);
 
+    return 1;
 }
 
