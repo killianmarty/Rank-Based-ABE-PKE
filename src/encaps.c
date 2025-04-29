@@ -1,23 +1,41 @@
 #include "encaps.h"
 
-void encaps(PublicKey *pub, uint8_t *shared_secret, rbc_181_qre cipher){
+void encaps(PublicKey *pub, Attribute *attributes, int nbAttributes, uint8_t *shared_secret, Message *msg){
 
     // Declarations
     rbc_181_vspace E;
     rbc_181_qre E1, E2;
     random_source prng;
     uint8_t support_string[R_BYTES];
-
+    BloomFilter bf_att;
+    BloomFilter bf_keys;
+    rbc_181_qre bf_hash;
     
     // Initialisations
-    rbc_181_field_init();
-    rbc_181_qre_init_modulus(N);
-
     random_source_init(&prng, RANDOM_SOURCE_PRNG);
-
     rbc_181_vspace_init(&E, R);
     rbc_181_qre_init(&E1);
     rbc_181_qre_init(&E2);
+    rbc_181_qre_init(&bf_hash);
+    rbc_181_qre_init(&(msg->cipher));
+
+
+    // Fill bloom filters
+    uint8_t ** salts = malloc(NUM_HASH_FUNCTIONS * sizeof(uint8_t*));
+    for (int i = 0; i < NUM_HASH_FUNCTIONS; i++) {
+        salts[i] = malloc(SALT_SIZE * sizeof(uint8_t));
+        random_source_get_bytes(&prng, salts[i], SALT_SIZE);
+    }
+    bloom_filter_init(&bf_att, BLOOM_FILTER_SIZE, NUM_HASH_FUNCTIONS, HASH_LEN, salts, SALT_SIZE);
+    bloom_filter_init(&bf_keys, BLOOM_FILTER_SIZE, NUM_HASH_FUNCTIONS, HASH_LEN, salts, SALT_SIZE);
+
+    for (int i = 0; i < nbAttributes; i++) {
+        char attribute_string[ATTRIBUTE_STRING_SIZE] = {0};
+        attribute_to_string(&attributes[i], attribute_string);
+
+        bloom_filter_add(&bf_att, attributes[i].key);
+        bloom_filter_add(&bf_keys, attribute_string);
+    }
     
 
     // Generate error support
@@ -29,9 +47,11 @@ void encaps(PublicKey *pub, uint8_t *shared_secret, rbc_181_qre cipher){
 
 
     // Generate ciphertext
-    rbc_181_qre_mul(cipher, E2, pub->h);
-    rbc_181_qre_add(cipher, cipher, E1);
-
+    H(bf_att.bit_array, bf_att.size, bf_hash);
+    rbc_181_qre_mul(msg->cipher, E2, pub->h);
+    rbc_181_qre_add(msg->cipher, msg->cipher, E1);
+    rbc_181_qre_mul(msg->cipher, msg->cipher, bf_hash);
+    msg->bf_keys = bf_keys;
 
     // Generate shared secret
     rbc_181_vec_echelonize(E, R);
@@ -42,9 +62,9 @@ void encaps(PublicKey *pub, uint8_t *shared_secret, rbc_181_qre cipher){
     // Free memory
     random_source_clear(&prng);
     rbc_181_vspace_clear(E);
+    rbc_181_qre_clear(bf_hash);
     rbc_181_qre_clear(E1);
     rbc_181_qre_clear(E2);
-    rbc_181_qre_clear_modulus();
 
 }
 

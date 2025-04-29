@@ -12,9 +12,6 @@ void keygen(PublicKey *pub, PrivateKey *priv){
 
 
     // Initialisations
-    rbc_181_field_init();
-    rbc_181_qre_init_modulus(N);
-
     random_source_init(&prng, RANDOM_SOURCE_PRNG);
     random_source_init(&sk_seedexpander, RANDOM_SOURCE_SEEDEXP);
     random_source_get_bytes(&prng, sk_seed, SEEDEXPANDER_SEED_BYTES);
@@ -39,7 +36,6 @@ void keygen(PublicKey *pub, PrivateKey *priv){
 
     // Free memory
     rbc_181_qre_clear(inv);
-    rbc_181_qre_clear_modulus();
     random_source_clear(&sk_seedexpander);
     random_source_clear(&prng);
 }

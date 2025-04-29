@@ -2,7 +2,8 @@
 #define DECRYPT__H
 
 #include "utils.h"
+#include "attribute.h"
 
-void decaps(uint8_t *shared_secret, rbc_181_qre cipher, PrivateKey *priv);
+void decaps(PrivateKey *priv, Message *msg, Attribute *attributes, int nbAttributes, uint8_t *shared_secret);
 
 #endif
