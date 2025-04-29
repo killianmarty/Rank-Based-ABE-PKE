@@ -106,16 +106,39 @@ int test_bloomfilter(){
 
     bloom_filter_init(&bf, BLOOM_FILTER_SIZE, NUM_HASH_FUNCTIONS, HASH_LEN);
 
-    char *str = "test_string";
-    bloom_filter_add(&bf, str, salts);
+    size_t n = 1000;
+    char *strings[n];
+    size_t string_length = 10;
 
-    int result = bloom_filter_check(&bf, str, salts);
-
-    for (int i = 0; i < NUM_HASH_FUNCTIONS; i++) {
-        free(salts[i]);
+    for (size_t i = 0; i < n; i++) {
+        strings[i] = (char *)malloc(string_length + 1);
+        for (size_t j = 0; j < string_length; j++) {
+            strings[i][j] = 'a' + (rand() % 26);
+        }
+        strings[i][string_length] = '\0';
+        bloom_filter_add(&bf, strings[i], salts);
     }
 
-    return result;
+    for (size_t i = 0; i < n; i++) {
+        if (!bloom_filter_check(&bf, strings[i], salts)) {
+            return 0;
+        }
+    }
+
+    char *not_in_filter[n];
+    for (size_t i = 0; i < n; i++) {
+        not_in_filter[i] = (char *)malloc(string_length + 1);
+        for (size_t j = 0; j < string_length; j++) {
+            not_in_filter[i][j] = 'a' + (rand() % 26);
+        }
+        not_in_filter[i][string_length] = '\0';
+
+        if (bloom_filter_check(&bf, not_in_filter[i], salts)) {
+            return 0;
+        }
+    }
+
+    return 1;
 }
 
 /*******************************/
