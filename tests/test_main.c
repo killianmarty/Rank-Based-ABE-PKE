@@ -245,55 +245,24 @@ int main(){
     printf("Testing keygen... "); fflush(stdout);
     print_result(startTime, test_keygen(&testPub, &testPriv));
 
-    // //Testing encaps
-    // startTime = get_current_time();
-    // printf("Testing encaps... "); fflush(stdout);
-    // uint8_t shared_secret[SECRET_KEY_BYTES];
-    // rbc_181_qre cipher;
-    // rbc_181_qre_init(&cipher);
-    // print_result(startTime, test_encaps(&testPub, shared_secret, cipher));
+    //Testing encaps
+    startTime = get_current_time();
+    printf("Testing encaps... "); fflush(stdout);
+    uint8_t shared_secret[SECRET_KEY_BYTES];
+    rbc_181_qre cipher;
+    rbc_181_qre_init(&cipher);
+    print_result(startTime, test_encaps(&testPub, shared_secret, cipher));
 
-    // //Testing decaps
-    // startTime = get_current_time();
-    // printf("Testing decaps... "); fflush(stdout);
-    // uint8_t decapsed_secret[SECRET_KEY_BYTES];
-    // print_result(startTime, test_decaps(decapsed_secret, cipher, &testPriv));
+    //Testing decaps
+    startTime = get_current_time();
+    printf("Testing decaps... "); fflush(stdout);
+    uint8_t decapsed_secret[SECRET_KEY_BYTES];
+    print_result(startTime, test_decaps(decapsed_secret, cipher, &testPriv));
 
     //Testing complete scheme
     startTime = get_current_time();
     printf("Testing complete scheme (100 times)... "); fflush(stdout);
     print_result(startTime, test_scheme());
-
-    // // Declarations
-    // random_source sk_seedexpander;
-    // uint8_t sk_seed[SEEDEXPANDER_SEED_BYTES] = {0};
-    // uint8_t hash[40];
-    // rbc_181_vspace G;
-    // rbc_181_qre output, inv, test;
-    // rbc_181_qre_init(&output);
-    // rbc_181_qre_init(&inv);
-    // rbc_181_qre_init(&test);
-    // int rg = 100;
-
-    // // Initialisations
-    // rbc_181_vspace_init(&G, rg);
-    // memcpy(sk_seed, hash, SEEDEXPANDER_SEED_BYTES);
-    // random_source_init(&sk_seedexpander, RANDOM_SOURCE_SEEDEXP);
-    // random_source_seed(&sk_seedexpander, sk_seed);
-
-    // // Use the hash as a seed to generate qre
-    // rbc_181_vspace_set_random_full_rank(&sk_seedexpander, G, rg);
-    
-    // //rbc_181_qre_set_random_from_support(&sk_seedexpander, output, G, D, 1);
-    // rbc_181_qre_set_random_from_support(&sk_seedexpander, output, G, rg, 1);
-    // rbc_181_qre_set_random_from_support(&sk_seedexpander, test, G, rg, 1);
-
-    // rbc_181_qre_print(test);
-    // rbc_181_qre_mul(test, output, test);
-    // rbc_181_qre_inv(inv, output);
-    // //rbc_181_qre_print(inv);
-    // rbc_181_qre_mul(output, test, inv);
-    // rbc_181_qre_print(output);
 
     rbc_181_qre_clear_modulus();
     return 0;

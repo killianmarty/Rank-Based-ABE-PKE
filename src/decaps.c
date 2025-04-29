@@ -40,8 +40,7 @@ void decaps(PrivateKey *priv, Message *msg, Attribute *attributes, int nbAttribu
       rbc_181_vec_to_string(support_string, E, R);
       SHA512(support_string, R_BYTES, shared_secret);
     } else {
-      perror("failed to decode\n");
-      return;
+      memset(shared_secret, 0, SECRET_KEY_BYTES);
     }
     
     // Free memory
