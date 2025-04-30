@@ -10,6 +10,8 @@
 #include "utils.h"
 #include "bloomfilter.h"
 
+void generate_random_string(int length, char *output);
+
 int test_keygen(PublicKey *testPub, PrivateKey *testPriv){
     return keygen(testPub, testPriv);
 }
@@ -31,21 +33,21 @@ int test_H(){
 
     for (size_t i = 0; i < 100; i++)
     {
+        // Declarations
         rbc_181_qre E1, E2;
-
+        uint8_t strE1[10240], strE2[10240];
+        int size = 10000;
+        char * payload = malloc(sizeof(char) * size);
 
         rbc_181_qre_init(&E1);
         rbc_181_qre_init(&E2);
-        int size = 10000;
-        char * payload = malloc(sizeof(char) * size+1);
-        for (int i = 0; i < size; i++) {
-            payload[i] = (rand() % 26);
-        }
-        payload[size] = '\0';
+
+        // Create two hashes of the same random string
+        generate_random_string(size, payload);
         H((uint8_t *)payload, 10, E1);
         H((uint8_t *)payload, 10, E2);
         
-        uint8_t strE1[10240], strE2[10240];
+        // Compare hashes
         rbc_181_qre_to_string(strE1, E1);
         rbc_181_qre_to_string(strE2, E2);
     
@@ -53,6 +55,7 @@ int test_H(){
             return 0;
         }
 
+        // Free memory
         rbc_181_qre_clear(E1);
         rbc_181_qre_clear(E2);
     }
@@ -62,38 +65,39 @@ int test_H(){
 }
 
 int test_H_bloomfilter(){
+
+    // Declarations
+    rbc_181_qre bf_hash;
+    rbc_181_qre bf_hash2;
     BloomFilter bf;
     uint8_t *salts[NUM_HASH_FUNCTIONS];
+    uint8_t strbf_hash[10240], strbf_hash2[10240] = {0};
+    size_t string_length = 10000;
+    char *strings[1000];
+
+    // Generate random salts
     for (int i = 0; i < NUM_HASH_FUNCTIONS; i++) {
         salts[i] = (uint8_t *)malloc(SALT_SIZE);
-        for (int j = 0; j < SALT_SIZE; j++) {
-            salts[i][j] = rand() % 256;
-        }
+        generate_random_string(SALT_SIZE, (char *)salts[i]);
     }
 
+
     bloom_filter_init(&bf, BLOOM_FILTER_SIZE, NUM_HASH_FUNCTIONS, HASH_LEN, salts, SALT_SIZE);
+    rbc_181_qre_init(&bf_hash);
+    rbc_181_qre_init(&bf_hash2);
 
-    char *strings[1000];
-    size_t string_length = 10000;
-
+    // Generate random strings and add them to the bloom filter
     for (size_t i = 0; i < 1000; i++) {
-        strings[i] = (char *)malloc(string_length + 1);
-        for (size_t j = 0; j < string_length; j++) {
-            strings[i][j] = 'a' + (rand() % 26);
-        }
-        strings[i][string_length] = '\0';
+        strings[i] = (char *)malloc(string_length);
+        generate_random_string(string_length, strings[i]);
         bloom_filter_add(&bf, strings[i]);
     }
 
-    rbc_181_qre bf_hash;
-    rbc_181_qre bf_hash2;
-
-    rbc_181_qre_init(&bf_hash);
-    rbc_181_qre_init(&bf_hash2);
+    // Hash the bloom filters
     H(bf.bit_array, bf.size, bf_hash);
     H(bf.bit_array, bf.size, bf_hash2);
 
-    uint8_t strbf_hash[10240], strbf_hash2[10240] = {0};
+    // Compare the hashes
     rbc_181_qre_to_string(strbf_hash, bf_hash);
     rbc_181_qre_to_string(strbf_hash2, bf_hash2);
 
@@ -110,18 +114,20 @@ int test_scheme(){
 
     for (size_t i = 0; i < 100; i++)
     {
+        // Declarations
         PublicKey testPub;
         PrivateKey testPriv;
         Message msg;
-        Attribute wanted[10];
-        Attribute available[20];
+        Attribute wanted[10], available[20];
+        uint8_t shared_secret[SECRET_KEY_BYTES];
+        uint8_t decapsed_secret[SECRET_KEY_BYTES];
+
+        // Generate random policy attributes
         for(int i = 0; i < 10; i++){
             char *key = malloc(sizeof(char)*ATTRIBUTE_KEY_SIZE);
             char *val = malloc(sizeof(char)*ATTRIBUTE_VALUE_SIZE);
-            for (size_t j = 0; j < ATTRIBUTE_KEY_SIZE-1; j++) key[j] = (rand() % 26 + 30);
-            for (size_t j = 0; j < ATTRIBUTE_VALUE_SIZE-1; j++) val[j] = (rand() % 26 + 30);
-            key[ATTRIBUTE_KEY_SIZE-1] = '\0';
-            val[ATTRIBUTE_VALUE_SIZE-1] = '\0';
+            generate_random_string(ATTRIBUTE_KEY_SIZE, key);
+            generate_random_string(ATTRIBUTE_VALUE_SIZE, val);
             sprintf(wanted[i].key, "%s", key);
             sprintf(wanted[i].value, "%s", val);
             sprintf(available[i].key, "%s", key);
@@ -129,33 +135,33 @@ int test_scheme(){
             free(key);
             free(val);
         }
+
+        // Generate random attributes that does not belong to the policy
         for(int i = 10; i < 20; i++){
             char *key = malloc(sizeof(char)*ATTRIBUTE_KEY_SIZE);
             char *val = malloc(sizeof(char)*ATTRIBUTE_VALUE_SIZE);
-            for (size_t j = 0; j < ATTRIBUTE_KEY_SIZE-1; j++) key[j] = (rand() % 26 + 30);
-            for (size_t j = 0; j < ATTRIBUTE_VALUE_SIZE-1; j++) val[j] = (rand() % 26 + 30);
-            key[ATTRIBUTE_KEY_SIZE-1] = '\0';
-            val[ATTRIBUTE_VALUE_SIZE-1] = '\0';
+            generate_random_string(ATTRIBUTE_KEY_SIZE, key);
+            generate_random_string(ATTRIBUTE_VALUE_SIZE, val);
             sprintf(available[i].key, "%s", key);
             sprintf(available[i].value, "%s", val);
             free(key);
             free(val);
         }
 
+        // Execute the scheme
         keygen(&testPub, &testPriv);
-
-        uint8_t shared_secret[SECRET_KEY_BYTES];
         encaps(&testPub, wanted, 10, shared_secret, &msg);
-
-        uint8_t decapsed_secret[SECRET_KEY_BYTES];
         int res = decaps(&testPriv, &msg, available, 20, decapsed_secret);
+
         if(res == 0) return 0;
         
+        // Compare the shared secret
         if (memcmp(shared_secret, decapsed_secret, SECRET_KEY_BYTES) != 0)
         {
             return 0;
         }
         
+        // Free memory
         rbc_181_qre_clear(msg.cipher);
         rbc_181_qre_clear(testPub.h);
         rbc_181_qre_clear(testPriv.x);
@@ -163,53 +169,60 @@ int test_scheme(){
         rbc_181_vspace_clear(testPriv.F);
         
     }
-    
 
     return 1;
 }
 
 int test_bloomfilter(){
+
+    // Declarations
     BloomFilter bf;
     uint8_t *salts[NUM_HASH_FUNCTIONS];
+    size_t n = 100;
+    size_t string_length = 10;
+    char *strings[n];
+    char *not_in_filter[n];
+
+    // Generate random salts
     for (int i = 0; i < NUM_HASH_FUNCTIONS; i++) {
         salts[i] = (uint8_t *)malloc(SALT_SIZE);
-        for (int j = 0; j < SALT_SIZE; j++) {
-            salts[i][j] = rand() % 256;
-        }
+        generate_random_string(SALT_SIZE, (char *)salts[i]);
     }
 
     bloom_filter_init(&bf, BLOOM_FILTER_SIZE, NUM_HASH_FUNCTIONS, HASH_LEN, salts, SALT_SIZE);
 
-    size_t n = 100;
-    char *strings[n];
-    size_t string_length = 10;
-
+    // Generate random strings and add them to the bloom filter
     for (size_t i = 0; i < n; i++) {
-        strings[i] = (char *)malloc(string_length + 1);
-        for (size_t j = 0; j < string_length; j++) {
-            strings[i][j] = 'a' + (rand() % 26);
-        }
-        strings[i][string_length] = '\0';
+        strings[i] = (char *)malloc(string_length);
+        not_in_filter[i] = (char *)malloc(string_length);
+
+        generate_random_string(string_length, strings[i]);
+        generate_random_string(string_length, not_in_filter[i]);
+
         bloom_filter_add(&bf, strings[i]);
     }
 
+    // Check if the generated strings are in the bloom filter
     for (size_t i = 0; i < n; i++) {
         if (!bloom_filter_check(&bf, strings[i])) {
             return 0;
         }
     }
 
-    char *not_in_filter[n];
+    // Check if the not_in_filter strings are not in the bloom filter
     for (size_t i = 0; i < n; i++) {
-        not_in_filter[i] = (char *)malloc(string_length + 1);
-        for (size_t j = 0; j < string_length; j++) {
-            not_in_filter[i][j] = 'a' + (rand() % 26);
-        }
-        not_in_filter[i][string_length] = '\0';
-
         if (bloom_filter_check(&bf, not_in_filter[i])) {
             return 0;
         }
+    }
+
+    // Free memory
+    for (size_t i = 0; i < n; i++) {
+        free(strings[i]);
+        free(not_in_filter[i]);
+    }
+    for (int i = 0; i < NUM_HASH_FUNCTIONS; i++) {
+        free(salts[i]);
     }
 
     return 1;
@@ -218,6 +231,13 @@ int test_bloomfilter(){
 /*******************************/
 /*******************************/
 /*******************************/
+
+void generate_random_string(int length, char *output){
+    for (int j = 0; j < length-1; j++) {
+        output[j] = (rand() % 26 + 30);
+    }
+    output[length-1] = '\0';
+}
 
 void print_result(struct timespec startTime, int result){
     struct timespec endTime;

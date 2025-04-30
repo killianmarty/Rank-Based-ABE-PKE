@@ -5,10 +5,9 @@
 int keygen(PublicKey *pub, PrivateKey *priv){
 
     // Declarations
-    random_source prng;
-    random_source sk_seedexpander;
-    uint8_t sk_seed[SEEDEXPANDER_SEED_BYTES];
     rbc_181_qre inv;
+    random_source prng, sk_seedexpander;
+    uint8_t sk_seed[SEEDEXPANDER_SEED_BYTES];
 
 
     // Initialisations

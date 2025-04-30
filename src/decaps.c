@@ -4,12 +4,11 @@
 int decaps(PrivateKey *priv, Message *msg, Attribute *attributes, int nbAttributes, uint8_t *shared_secret) {
     
     // Declarations
-    rbc_181_qre xc, cipher_dec;
     rbc_181_vspace E;
+    rbc_181_qre xc, cipher_dec, bf_hash;
+    BloomFilter bf_att;
     uint8_t support_string[R_BYTES];
     uint32_t dimE = 0;
-    BloomFilter bf_att;
-    rbc_181_qre bf_hash;
   
 
     // Initialisations

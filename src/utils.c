@@ -3,11 +3,11 @@
 void H(uint8_t *payload, int payload_size, rbc_181_qre output){
     
     // Declarations
+    rbc_181_vspace G;
     random_source sk_seedexpander;
     uint8_t sk_seed[SEEDEXPANDER_SEED_BYTES] = {0};
     uint8_t hash[40] = {0};
-    rbc_181_vspace G;
-    int rg = 2;
+    int rg = N;
 
     // Hash the payload
     SHA256(payload, payload_size, hash);

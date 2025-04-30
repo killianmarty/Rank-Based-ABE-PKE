@@ -4,12 +4,10 @@ int encaps(PublicKey *pub, Attribute *attributes, int nbAttributes, uint8_t *sha
 
     // Declarations
     rbc_181_vspace E;
-    rbc_181_qre E1, E2;
+    rbc_181_qre E1, E2, bf_hash;
+    BloomFilter bf_att, bf_keys;
     random_source prng;
     uint8_t support_string[R_BYTES];
-    BloomFilter bf_att;
-    BloomFilter bf_keys;
-    rbc_181_qre bf_hash;
     
     // Initialisations
     random_source_init(&prng, RANDOM_SOURCE_PRNG);
