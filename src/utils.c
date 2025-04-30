@@ -34,13 +34,13 @@ uint8_t * serialize_private_key(PrivateKey *key){
 
     uint8_t *output = calloc(SERIALIZED_PRIVATE_KEY_SIZE, sizeof(uint8_t));
 
-    uint8_t x[SERIALIZED_QRE_SIZE];
-    uint8_t y[SERIALIZED_QRE_SIZE];
-    uint8_t F[SERIALIZED_VSPACE_SIZE];
+    uint8_t x[SERIALIZED_QRE_SIZE] = {0};
+    uint8_t y[SERIALIZED_QRE_SIZE] = {0};
+    uint8_t F[SERIALIZED_VSPACE_SIZE] = {0};
 
     rbc_181_qre_to_string(x, key->x);
     rbc_181_qre_to_string(y, key->y);
-    rbc_181_vec_to_string(F, key->F, N);
+    rbc_181_vec_to_string(F, key->F, D);
 
     memcpy(output, x, SERIALIZED_QRE_SIZE);
     memcpy(output + SERIALIZED_QRE_SIZE, y, SERIALIZED_QRE_SIZE);
@@ -53,9 +53,9 @@ PrivateKey * deserialize_private_key(uint8_t *input){
 
     PrivateKey *key = malloc(sizeof(PrivateKey));
 
-    uint8_t x[SERIALIZED_QRE_SIZE];
-    uint8_t y[SERIALIZED_QRE_SIZE];
-    uint8_t F[SERIALIZED_VSPACE_SIZE];
+    uint8_t x[SERIALIZED_QRE_SIZE] = {0};
+    uint8_t y[SERIALIZED_QRE_SIZE] = {0};
+    uint8_t F[SERIALIZED_VSPACE_SIZE] = {0};
 
     memcpy(x, input, SERIALIZED_QRE_SIZE);
     memcpy(y, input + SERIALIZED_QRE_SIZE, SERIALIZED_QRE_SIZE);
@@ -63,11 +63,11 @@ PrivateKey * deserialize_private_key(uint8_t *input){
 
     rbc_181_qre_init(&key->x);
     rbc_181_qre_init(&key->y);
-    rbc_181_vspace_init(&key->F, N);
+    rbc_181_vspace_init(&key->F, D);
 
     rbc_181_qre_from_string(key->x, x);
     rbc_181_qre_from_string(key->y, y);
-    rbc_181_vec_from_string(key->F, N, F);
+    rbc_181_vec_from_string(key->F, D, F);
 
     return key;
 }

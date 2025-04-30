@@ -9,8 +9,7 @@ int decaps(PrivateKey *priv, Message *msg, Attribute *attributes, int nbAttribut
     BloomFilter bf_att;
     uint8_t support_string[R_BYTES];
     uint32_t dimE = 0;
-  
-
+    
     // Initialisations
     rbc_181_qre_init(&xc);
     rbc_181_qre_init(&bf_hash);

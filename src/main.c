@@ -86,19 +86,19 @@ int main(int argc, char *argv[]) {
 		rbc_181_field_init();
     	rbc_181_qre_init_modulus(N);
 
-		uint8_t serialized_private_key[SERIALIZED_PRIVATE_KEY_SIZE];
+		uint8_t serialized_private_key[SERIALIZED_PRIVATE_KEY_SIZE] = {0};
 		FILE *privFile = fopen(argv[2], "rb");
 		if (!privFile) {
 			printf("No such file or directory\n");
 			exit(1);
 		}
-		fread(serialized_private_key, sizeof(uint8_t), SERIALIZED_PUBLIC_KEY_SIZE, privFile);
+		fread(serialized_private_key, sizeof(uint8_t), SERIALIZED_PRIVATE_KEY_SIZE, privFile);
 		fclose(privFile);
 
 		int32_t data_size = 0;
 		FILE *msgFile = fopen(argv[3], "rb");
 		if (!msgFile) {
-			printf("No such file or directory\n");
+			printf("No such file or directory.\n");
 			exit(1);
 		}
 		fread(&data_size, sizeof(uint32_t), 1, msgFile);

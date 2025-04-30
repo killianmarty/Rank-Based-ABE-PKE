@@ -28,6 +28,7 @@ int keygen(PublicKey *pub, PrivateKey *priv){
     rbc_181_vspace_set_random_full_rank(&sk_seedexpander, priv->F, D);
     rbc_181_qre_set_random_pair_from_support(&sk_seedexpander, priv->x, priv->y, priv->F, D, 1);
 
+    
     // Generate public key (h=x⁻¹y)
     rbc_181_qre_inv(inv, priv->x);
     rbc_181_qre_mul(pub->h, inv, priv->y);
