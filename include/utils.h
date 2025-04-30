@@ -17,7 +17,6 @@ typedef struct {
 
 typedef struct {
     rbc_181_qre cipher;
-    rbc_181_vspace G;
     BloomFilter bf_keys;
     uint8_t salts[NUM_HASH_FUNCTIONS][SALT_SIZE];
 } Message;
@@ -29,6 +28,22 @@ typedef struct {
 #define R_BYTES 204
 #define SECRET_KEY_BYTES 64
 
+#define SERIALIZED_QRE_SIZE 20400
+#define SERIALIZED_VSPACE_SIZE 20400
+#define SERIALIZED_PRIVATE_KEY_SIZE (2*SERIALIZED_QRE_SIZE + SERIALIZED_VSPACE_SIZE)
+
 void H(uint8_t *payload, int payload_size, rbc_181_qre output);
+
+uint8_t * serialize_private_key(PrivateKey *key);
+
+PrivateKey * deserialize_private_key(uint8_t *input);
+
+uint8_t * serialize_public_key(PublicKey *key);
+
+PublicKey * deserialize_public_key(uint8_t *input);
+
+uint8_t * serialize_message(Message *msg);
+
+Message * deserialize_message(uint8_t *input);
 
 #endif

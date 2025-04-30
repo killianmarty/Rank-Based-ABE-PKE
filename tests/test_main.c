@@ -11,22 +11,20 @@
 #include "bloomfilter.h"
 
 void generate_random_string(int length, char *output);
+int compare_qre(rbc_181_qre a, rbc_181_qre b);
+int compare_vspace(rbc_181_vspace a, rbc_181_vspace b);
 
 int test_keygen(PublicKey *testPub, PrivateKey *testPriv){
     return keygen(testPub, testPriv);
 }
 
-int test_encaps(PublicKey *testPub, uint8_t *shared_secret, rbc_181_qre cipher){
-    Message msg;
-    return encaps(testPub, NULL, 0, shared_secret, &msg);
+int test_encaps(PublicKey *testPub, uint8_t *shared_secret, Message *msg){
+    return encaps(testPub, NULL, 0, shared_secret, msg);
 }
 
-int test_decaps(uint8_t *shared_secret, rbc_181_qre cipher, PrivateKey *testPriv){
-    Message msg;
-    rbc_181_qre_init(&msg.cipher);
-    decaps(testPriv, &msg, NULL, 0, shared_secret);
+int test_decaps(uint8_t *shared_secret, PrivateKey *testPriv, Message *msg){
+    return decaps(testPriv, msg, NULL, 0, shared_secret);
 
-    return 1;
 }
 
 int test_H(){
@@ -228,9 +226,81 @@ int test_bloomfilter(){
     return 1;
 }
 
+int test_serialization(){
+    PrivateKey testPriv;
+    PrivateKey *deserialized_priv_key;
+    PublicKey testPub;
+    PublicKey *deserialized_pub_key;
+    Message msg;
+    Message *deserialized_msg;
+    uint8_t *serialized_msg;
+    uint8_t *serialized_priv_key;
+    uint8_t *serialized_pub_key;
+    uint8_t secret[SECRET_KEY_BYTES];
+
+    keygen(&testPub, &testPriv);
+    serialized_priv_key = serialize_private_key(&testPriv);
+    deserialized_priv_key = deserialize_private_key(serialized_priv_key);
+
+    if(compare_qre(testPriv.x, deserialized_priv_key->x) == 0){
+        return 0;
+    }
+    if(compare_qre(testPriv.y, deserialized_priv_key->y) == 0){
+        return 0;
+    }
+    if(compare_vspace(testPriv.F, deserialized_priv_key->F) == 0){
+        return 0;
+    }
+
+    serialized_pub_key = serialize_public_key(&testPub);
+    deserialized_pub_key = deserialize_public_key(serialized_pub_key);
+    
+    if(compare_qre(testPub.h, deserialized_pub_key->h) == 0){
+        return 0;
+    }
+    
+    encaps(&testPub, NULL, 0, secret, &msg);
+    serialized_msg = serialize_message(&msg);
+    deserialized_msg = deserialize_message(serialized_msg);
+    if(compare_qre(msg.cipher, deserialized_msg->cipher) == 0){
+        return 0;
+    }
+    if(memcmp(msg.bf_keys.bit_array, deserialized_msg->bf_keys.bit_array, msg.bf_keys.size) != 0){
+        return 0;
+    }
+
+    for(int i = 0; i < msg.bf_keys.num_hash_functions; i++){
+        if(memcmp(msg.bf_keys.salts[i], deserialized_msg->bf_keys.salts[i], msg.bf_keys.salt_len) != 0){
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
 /*******************************/
 /*******************************/
 /*******************************/
+
+int compare_qre(rbc_181_qre a, rbc_181_qre b){
+    uint8_t strE1[10240], strE2[10240];
+    rbc_181_qre_to_string(strE1, a);
+    rbc_181_qre_to_string(strE2, b);
+    if (strcmp((char*)strE1, (char*)strE2) != 0) {
+        return 0;
+    }
+    return 1;
+}
+
+int compare_vspace(rbc_181_vspace a, rbc_181_vspace b){
+    uint8_t strE1[10240], strE2[10240];
+    rbc_181_vec_to_string(strE1, a, N);
+    rbc_181_vec_to_string(strE2, b, N);
+    if (strcmp((char*)strE1, (char*)strE2) != 0) {
+        return 0;
+    }
+    return 1;
+}
 
 void generate_random_string(int length, char *output){
     for (int j = 0; j < length-1; j++) {
@@ -295,20 +365,25 @@ int main(){
     startTime = get_current_time();
     printf("Testing encaps... "); fflush(stdout);
     uint8_t shared_secret[SECRET_KEY_BYTES];
-    rbc_181_qre cipher;
-    rbc_181_qre_init(&cipher);
-    print_result(startTime, test_encaps(&testPub, shared_secret, cipher));
+    Message msg;
+    rbc_181_qre_init(&msg.cipher);
+    print_result(startTime, test_encaps(&testPub, shared_secret, &msg));
 
     //Testing decaps
     startTime = get_current_time();
     printf("Testing decaps... "); fflush(stdout);
     uint8_t decapsed_secret[SECRET_KEY_BYTES];
-    print_result(startTime, test_decaps(decapsed_secret, cipher, &testPriv));
+    print_result(startTime, test_decaps(decapsed_secret, &testPriv, &msg));
 
     //Testing complete scheme
     startTime = get_current_time();
     printf("Testing complete scheme (100 times)... "); fflush(stdout);
     print_result(startTime, test_scheme());
+
+    //Testing serialization
+    startTime = get_current_time();
+    printf("Testing serialization... "); fflush(stdout);
+    print_result(startTime, test_serialization());
 
     rbc_181_qre_clear_modulus();
     return 0;

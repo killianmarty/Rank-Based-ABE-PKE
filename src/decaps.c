@@ -30,7 +30,6 @@ int decaps(PrivateKey *priv, Message *msg, Attribute *attributes, int nbAttribut
       }
     }
 
-
     // Decoding syndrome
     H(bf_att.bit_array, bf_att.size, bf_hash);
     rbc_181_qre_inv(bf_hash, bf_hash);

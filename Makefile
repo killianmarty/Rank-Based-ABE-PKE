@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Iinclude -Wno-unused-parameter
+CFLAGS = -Wall -Wextra -Iinclude -Wno-unused-parameter -pedantic
 LDFLAGS = -L./lib/rbc_lib -lrbc -lcrypto -O3
 
 SRC = $(wildcard src/*.c)
