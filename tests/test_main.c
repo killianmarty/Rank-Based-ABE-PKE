@@ -4,10 +4,10 @@
 #include <string.h>
 #include "../lib/rbc_lib/rbc.h"
 
+#include "utils.h"
 #include "keygen.h"
 #include "encaps.h"
 #include "decaps.h"
-#include "utils.h"
 #include "bloomfilter.h"
 
 void generate_random_string(int length, char *output);

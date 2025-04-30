@@ -93,47 +93,49 @@ PublicKey * deserialize_public_key(uint8_t *input){
 }
 
 uint8_t * serialize_message(Message *msg){
-    uint8_t *output = calloc(4*sizeof(uint32_t) + msg->bf_keys.num_hash_functions*msg->bf_keys.salt_len + msg->bf_keys.size + SERIALIZED_QRE_SIZE, sizeof(uint8_t));
+    int data_size = 5*sizeof(uint32_t) + msg->bf_keys.num_hash_functions*msg->bf_keys.salt_len + msg->bf_keys.size + SERIALIZED_QRE_SIZE;
+    uint8_t *output = calloc(data_size, sizeof(uint8_t));
     uint8_t cipher[SERIALIZED_QRE_SIZE];
 
     rbc_181_qre_to_string(cipher, msg->cipher);
     
-    memcpy(output, &msg->bf_keys.size, sizeof(int32_t));
-    memcpy(output + sizeof(int32_t), &msg->bf_keys.num_hash_functions, sizeof(int32_t));
-    memcpy(output + 2*sizeof(int32_t), &msg->bf_keys.hash_len, sizeof(int32_t));
-    memcpy(output + 3*sizeof(int32_t), &msg->bf_keys.salt_len, sizeof(int32_t));
+    memcpy(output, &data_size, sizeof(int32_t));
+    memcpy(output + sizeof(int32_t), &msg->bf_keys.size, sizeof(int32_t));
+    memcpy(output + 2*sizeof(int32_t), &msg->bf_keys.num_hash_functions, sizeof(int32_t));
+    memcpy(output + 3*sizeof(int32_t), &msg->bf_keys.hash_len, sizeof(int32_t));
+    memcpy(output + 4*sizeof(int32_t), &msg->bf_keys.salt_len, sizeof(int32_t));
     for (int i = 0; i < msg->bf_keys.num_hash_functions; i++)
     {
-        memcpy(output + 4*sizeof(int32_t) + i*msg->bf_keys.salt_len, msg->bf_keys.salts[i], msg->bf_keys.salt_len);
+        memcpy(output + 5*sizeof(int32_t) + i*msg->bf_keys.salt_len, msg->bf_keys.salts[i], msg->bf_keys.salt_len);
     }
-    memcpy(output + 4*sizeof(int32_t) + msg->bf_keys.num_hash_functions*msg->bf_keys.salt_len, msg->bf_keys.bit_array, msg->bf_keys.size);
-    memcpy(output + 4*sizeof(int32_t) + msg->bf_keys.num_hash_functions*msg->bf_keys.salt_len + msg->bf_keys.size, cipher, SERIALIZED_QRE_SIZE);
+    memcpy(output + 5*sizeof(int32_t) + msg->bf_keys.num_hash_functions*msg->bf_keys.salt_len, msg->bf_keys.bit_array, msg->bf_keys.size);
+    memcpy(output + 5*sizeof(int32_t) + msg->bf_keys.num_hash_functions*msg->bf_keys.salt_len + msg->bf_keys.size, cipher, SERIALIZED_QRE_SIZE);
     
 
     return output;
 }
 
 Message * deserialize_message(uint8_t *input){
-    
+
     Message *msg = malloc(sizeof(Message));
-
-    memcpy(&msg->bf_keys.size, input, sizeof(int32_t));
-    memcpy(&msg->bf_keys.num_hash_functions, input + sizeof(int32_t), sizeof(int32_t));
-    memcpy(&msg->bf_keys.hash_len, input + 2*sizeof(int32_t), sizeof(int32_t));
-    memcpy(&msg->bf_keys.salt_len, input + 3*sizeof(int32_t), sizeof(int32_t));
-
+    
+    memcpy(&msg->bf_keys.size, input + sizeof(int32_t), sizeof(int32_t));
+    memcpy(&msg->bf_keys.num_hash_functions, input + 2*sizeof(int32_t), sizeof(int32_t));
+    memcpy(&msg->bf_keys.hash_len, input + 3*sizeof(int32_t), sizeof(int32_t));
+    memcpy(&msg->bf_keys.salt_len, input + 4*sizeof(int32_t), sizeof(int32_t));
+    
     msg->bf_keys.salts = malloc(msg->bf_keys.num_hash_functions*sizeof(uint8_t*));
     for (int i = 0; i < msg->bf_keys.num_hash_functions; i++)
     {
         msg->bf_keys.salts[i] = malloc(msg->bf_keys.salt_len*sizeof(uint8_t));
-        memcpy(msg->bf_keys.salts[i], input + 4*sizeof(int32_t) + i*msg->bf_keys.salt_len, msg->bf_keys.salt_len);
+        memcpy(msg->bf_keys.salts[i], input + 5*sizeof(int32_t) + i*msg->bf_keys.salt_len, msg->bf_keys.salt_len);
     }
     
     msg->bf_keys.bit_array = malloc(msg->bf_keys.size*sizeof(uint8_t));
-    memcpy(msg->bf_keys.bit_array, input + 4*sizeof(int32_t) + msg->bf_keys.num_hash_functions*msg->bf_keys.salt_len, msg->bf_keys.size);
+    memcpy(msg->bf_keys.bit_array, input + 5*sizeof(int32_t) + msg->bf_keys.num_hash_functions*msg->bf_keys.salt_len, msg->bf_keys.size);
     
     rbc_181_qre_init(&msg->cipher);
-    rbc_181_qre_from_string(msg->cipher, input + 4*sizeof(int32_t) + msg->bf_keys.num_hash_functions*msg->bf_keys.salt_len + msg->bf_keys.size);
+    rbc_181_qre_from_string(msg->cipher, input + 5*sizeof(int32_t) + msg->bf_keys.num_hash_functions*msg->bf_keys.salt_len + msg->bf_keys.size);
 
     return msg;
 }
