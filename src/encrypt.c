@@ -3,19 +3,19 @@
 int encrypt(PublicKey *pub, AttributeList * attributes, uint8_t *plaintext, int plaintextSize, CipherText *ciphertext){
 
     // Declarations
-    rbc_181_vspace E;
-    rbc_181_qre E1, E2, bf_hash;
+    rbc_vspace E;
+    rbc_qre E1, E2, bf_hash;
     BloomFilter bf_att, bf_keys;
     random_source prng;
     uint8_t support_string[R_BYTES];
     
     // Initialisations
     random_source_init(&prng, RANDOM_SOURCE_PRNG);
-    rbc_181_vspace_init(&E, R);
-    rbc_181_qre_init(&E1);
-    rbc_181_qre_init(&E2);
-    rbc_181_qre_init(&bf_hash);
-    rbc_181_qre_init(&(ciphertext->c.cipher));
+    rbc_vspace_init(&E, R);
+    rbc_qre_init(&E1);
+    rbc_qre_init(&E2);
+    rbc_qre_init(&bf_hash);
+    rbc_qre_init(&(ciphertext->c.cipher));
 
 
     // Generate salts and init bloom filters
@@ -40,24 +40,24 @@ int encrypt(PublicKey *pub, AttributeList * attributes, uint8_t *plaintext, int 
     
 
     // Generate error support
-    rbc_181_vspace_set_random_full_rank(&prng, E, R);
+    rbc_vspace_set_random_full_rank(&prng, E, R);
 
 
     // Generate error vectors
-    rbc_181_qre_set_random_pair_from_support(&prng, E1, E2, E, R, 1);
+    rbc_qre_set_random_pair_from_support(&prng, E1, E2, E, R, 1);
 
 
     // Generate ciphertext
     H(bf_att.bit_array, bf_att.size, bf_hash);
-    rbc_181_qre_mul(ciphertext->c.cipher, E2, pub->h);
-    rbc_181_qre_add(ciphertext->c.cipher, ciphertext->c.cipher, E1);
-    rbc_181_qre_mul(ciphertext->c.cipher, ciphertext->c.cipher, bf_hash);
+    rbc_qre_mul(ciphertext->c.cipher, E2, pub->h);
+    rbc_qre_add(ciphertext->c.cipher, ciphertext->c.cipher, E1);
+    rbc_qre_mul(ciphertext->c.cipher, ciphertext->c.cipher, bf_hash);
     ciphertext->c.bf_keys = bf_keys;
 
     // Hash E
     uint8_t hashedE[SECRET_KEY_BYTES];
-    rbc_181_vec_echelonize(E, R);
-    rbc_181_vec_to_string(support_string, E, R);
+    rbc_vec_echelonize(E, R);
+    rbc_vec_to_string(support_string, E, R);
     SHA512(support_string, R_BYTES, hashedE);
 
     // Compute the encrypted message
@@ -69,10 +69,10 @@ int encrypt(PublicKey *pub, AttributeList * attributes, uint8_t *plaintext, int 
 
     // Free memory
     random_source_clear(&prng);
-    rbc_181_vspace_clear(E);
-    rbc_181_qre_clear(bf_hash);
-    rbc_181_qre_clear(E1);
-    rbc_181_qre_clear(E2);
+    rbc_vspace_clear(E);
+    rbc_qre_clear(bf_hash);
+    rbc_qre_clear(E1);
+    rbc_qre_clear(E2);
 
     return 1;
 }

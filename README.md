@@ -55,7 +55,7 @@ This file will then be used to encrypt or decrypt data.
 ## Parameters
 
 For the N parameter, the allowed values are 83, 113, 149 and 179.
-The M parameter is constant in this implementation (M=181)
+The M parameter, the allowed values are 181, 151, 127, 97, 83, 89 and 67.
 R and D parameters are respectively the rank of F, and E. These parameters needs to have a low value.
 
 ### Security

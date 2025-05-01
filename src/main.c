@@ -22,8 +22,8 @@ static int check_arg(int argc, int expected, const char *prog) {
 }
 
 int main(int argc, char **argv) {
-    rbc_181_field_init();
-    rbc_181_qre_init_modulus(N);
+    rbc_field_init();
+    rbc_qre_init_modulus(N);
 
     if (argc < 2) {
         print_help(argv[0]);
@@ -157,6 +157,6 @@ int main(int argc, char **argv) {
     }
 
     // Free memory
-    rbc_181_qre_clear_modulus();
+    rbc_qre_clear_modulus();
     return 0;
 }

@@ -6,7 +6,7 @@
 #include "bloomfilter.h"
 #include "attribute.h"
 
-#define M 181
+#define M 127
 #define N 179
 #define D 9
 #define R 9
@@ -18,18 +18,20 @@
 #define SERIALIZED_PRIVATE_KEY_SIZE (2*SERIALIZED_QRE_SIZE + SERIALIZED_VSPACE_SIZE)
 #define SERIALIZED_PUBLIC_KEY_SIZE SERIALIZED_QRE_SIZE
 
+#include "rbcsizes.h"
+
 typedef struct {
-    rbc_181_vspace F;
-    rbc_181_qre x;
-    rbc_181_qre y;
+    rbc_vspace F;
+    rbc_qre x;
+    rbc_qre y;
 } PrivateKey;
 
 typedef struct {
-    rbc_181_qre h;
+    rbc_qre h;
 } PublicKey;
 
 typedef struct {
-    rbc_181_qre cipher;
+    rbc_qre cipher;
     BloomFilter bf_keys;
     uint8_t salts[NUM_HASH_FUNCTIONS][SALT_SIZE];
 } CipherTextMetaData;
@@ -40,7 +42,7 @@ typedef struct {
     CipherTextMetaData c;
 } CipherText;
 
-void H(uint8_t *payload, int payload_size, rbc_181_qre output);
+void H(uint8_t *payload, int payload_size, rbc_qre output);
 
 uint8_t * serialize_private_key(PrivateKey *key);
 

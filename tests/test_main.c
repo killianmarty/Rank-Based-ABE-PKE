@@ -11,8 +11,8 @@
 #include "bloomfilter.h"
 
 void generate_random_string(int length, char *output);
-int compare_qre(rbc_181_qre a, rbc_181_qre b);
-int compare_vspace(rbc_181_vspace a, rbc_181_vspace b);
+int compare_qre(rbc_qre a, rbc_qre b);
+int compare_vspace(rbc_vspace a, rbc_vspace b);
 
 int test_keygen(PublicKey *testPub, PrivateKey *testPriv){
     return keygen(testPub, testPriv);
@@ -33,13 +33,13 @@ int test_H(){
     for (size_t i = 0; i < 100; i++)
     {
         // Declarations
-        rbc_181_qre E1, E2;
+        rbc_qre E1, E2;
         uint8_t strE1[10240], strE2[10240];
         int size = 10000;
         char * payload = malloc(sizeof(char) * size);
 
-        rbc_181_qre_init(&E1);
-        rbc_181_qre_init(&E2);
+        rbc_qre_init(&E1);
+        rbc_qre_init(&E2);
 
         // Create two hashes of the same random string
         generate_random_string(size, payload);
@@ -47,16 +47,16 @@ int test_H(){
         H((uint8_t *)payload, 10, E2);
         
         // Compare hashes
-        rbc_181_qre_to_string(strE1, E1);
-        rbc_181_qre_to_string(strE2, E2);
+        rbc_qre_to_string(strE1, E1);
+        rbc_qre_to_string(strE2, E2);
     
         if (strcmp((char*)strE1, (char*)strE2) != 0) {
             return 0;
         }
 
         // Free memory
-        rbc_181_qre_clear(E1);
-        rbc_181_qre_clear(E2);
+        rbc_qre_clear(E1);
+        rbc_qre_clear(E2);
     }
 
     return 1;
@@ -66,8 +66,8 @@ int test_H(){
 int test_H_bloomfilter(){
 
     // Declarations
-    rbc_181_qre bf_hash;
-    rbc_181_qre bf_hash2;
+    rbc_qre bf_hash;
+    rbc_qre bf_hash2;
     BloomFilter bf;
     uint8_t *salts[NUM_HASH_FUNCTIONS];
     uint8_t strbf_hash[10240], strbf_hash2[10240] = {0};
@@ -82,8 +82,8 @@ int test_H_bloomfilter(){
 
 
     bloom_filter_init(&bf, BLOOM_FILTER_SIZE, NUM_HASH_FUNCTIONS, HASH_LEN, salts, SALT_SIZE);
-    rbc_181_qre_init(&bf_hash);
-    rbc_181_qre_init(&bf_hash2);
+    rbc_qre_init(&bf_hash);
+    rbc_qre_init(&bf_hash2);
 
     // Generate random strings and add them to the bloom filter
     for (size_t i = 0; i < 1000; i++) {
@@ -97,8 +97,8 @@ int test_H_bloomfilter(){
     H(bf.bit_array, bf.size, bf_hash2);
 
     // Compare the hashes
-    rbc_181_qre_to_string(strbf_hash, bf_hash);
-    rbc_181_qre_to_string(strbf_hash2, bf_hash2);
+    rbc_qre_to_string(strbf_hash, bf_hash);
+    rbc_qre_to_string(strbf_hash2, bf_hash2);
 
     if (strcmp((char*)strbf_hash, (char*)strbf_hash2) == 0) {
         return 1;
@@ -162,11 +162,11 @@ int test_scheme(){
         }
         
         // Free memory
-        rbc_181_qre_clear(ciphertext.c.cipher);
-        rbc_181_qre_clear(testPub.h);
-        rbc_181_qre_clear(testPriv.x);
-        rbc_181_qre_clear(testPriv.y);
-        rbc_181_vspace_clear(testPriv.F);
+        rbc_qre_clear(ciphertext.c.cipher);
+        rbc_qre_clear(testPub.h);
+        rbc_qre_clear(testPriv.x);
+        rbc_qre_clear(testPriv.y);
+        rbc_vspace_clear(testPriv.F);
         
     }
 
@@ -298,22 +298,22 @@ int test_serialization(){
 /*******************************/
 /*******************************/
 
-int compare_qre(rbc_181_qre a, rbc_181_qre b){
+int compare_qre(rbc_qre a, rbc_qre b){
     uint8_t strE1[10240] = {0};
     uint8_t strE2[10240] = {0};
-    rbc_181_qre_to_string(strE1, a);
-    rbc_181_qre_to_string(strE2, b);
+    rbc_qre_to_string(strE1, a);
+    rbc_qre_to_string(strE2, b);
     if (memcmp((char*)strE1, (char*)strE2, 10240) != 0) {
         return 0;
     }
     return 1;
 }
 
-int compare_vspace(rbc_181_vspace a, rbc_181_vspace b){
+int compare_vspace(rbc_vspace a, rbc_vspace b){
     uint8_t strE1[10240] = {0};
     uint8_t strE2[10240] = {0};
-    rbc_181_vec_to_string(strE1, a, D);
-    rbc_181_vec_to_string(strE2, b, D);
+    rbc_vec_to_string(strE1, a, D);
+    rbc_vec_to_string(strE2, b, D);
     if (memcmp((char*)strE1, (char*)strE2, 10240) != 0) {
         return 0;
     }
@@ -351,8 +351,8 @@ struct timespec get_current_time(){
 int main(){
     printf("\n┌───────────────┐\n│ Running tests │\n└───────────────┘\n\n");
 
-    rbc_181_field_init();
-    rbc_181_qre_init_modulus(N);
+    rbc_field_init();
+    rbc_qre_init_modulus(N);
 
     struct timespec startTime;
 
@@ -388,7 +388,7 @@ int main(){
     uint8_t testPlaintext[128];
     CipherText ciphertext;
     generate_random_string(SECRET_KEY_BYTES, (char *)testPlaintext);
-    rbc_181_qre_init(&ciphertext.c.cipher);
+    rbc_qre_init(&ciphertext.c.cipher);
     print_result(startTime, test_encrypt(&testPub, &testAttr, testPlaintext, 128, &ciphertext));
 
     //Testing decaps
@@ -406,6 +406,6 @@ int main(){
     printf("Testing serialization... "); fflush(stdout);
     print_result(startTime, test_serialization());
 
-    rbc_181_qre_clear_modulus();
+    rbc_qre_clear_modulus();
     return 0;
 }
