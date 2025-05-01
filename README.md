@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This algorithm is based on RolloII and add a layer of ABE using cipher text policy with bloom filters.
+This scheme is based on Rollo-II and add a layer of ABE using cipher text policy with bloom filters.
 In this implementation, the RBC-Lib is used.
 
 ## Installation
@@ -45,7 +45,7 @@ To decrypt data:
 
 Attributes need to be saved into a file with the following format:
 
-```
+```ini
 key1=value1
 key2=value2
 ```
@@ -67,3 +67,13 @@ Here is the parameters needed for each level of security:
 |128           |83 |7  |8  |
 |192           |97 |8  |8  |
 |256           |113|9  |9  |
+
+## Credits
+
+N. Aragon, L. Bidoux, et. al. RBC Library. Version 1.3. https://rbc-lib.org. 
+
+## Authors
+
+This project was part of a larger research projet conducted by Killian Marty, Thomas Chourret, Leandro Rodriguez, Baptiste Rébillard, Aurélien Pouilles, Gabriel Lanoux and Sophia Salinas.
+
+This specific encryption scheme was developped and implemented by Killian Marty.
