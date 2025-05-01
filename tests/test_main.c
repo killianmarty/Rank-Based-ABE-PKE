@@ -18,13 +18,13 @@ int test_keygen(PublicKey *testPub, PrivateKey *testPriv){
     return keygen(testPub, testPriv);
 }
 
-int test_encrypt(PublicKey *testPub, uint8_t *testPlaintext, int testPlaintext_size, CipherText *ciphertext){
-    return encrypt(testPub, NULL, 0, testPlaintext, testPlaintext_size, ciphertext);
+int test_encrypt(PublicKey *testPub, AttributeList* attributes, uint8_t *testPlaintext, int testPlaintext_size, CipherText *ciphertext){
+    return encrypt(testPub, attributes, testPlaintext, testPlaintext_size, ciphertext);
 }
 
-int test_decrypt(PrivateKey *testPriv, CipherText *ciphertext, uint8_t *plaintext, int testPlaintext_size){
+int test_decrypt(PrivateKey *testPriv, AttributeList* attributes, CipherText *ciphertext, uint8_t *plaintext, int testPlaintext_size){
     uint8_t recovered_plaintext[128];
-    decrypt(testPriv, NULL, 0, ciphertext, recovered_plaintext);
+    decrypt(testPriv, attributes, ciphertext, recovered_plaintext);
     return memcmp((char *)plaintext, (char *)recovered_plaintext, testPlaintext_size) == 0;
 }
 
@@ -117,9 +117,13 @@ int test_scheme(){
         PublicKey testPub;
         PrivateKey testPriv;
         CipherText ciphertext;
-        Attribute wanted[10], available[20];
         uint8_t plaintext[256];
         uint8_t decrypted_plaintext[256];
+
+        AttributeList wanted, available;
+
+        attribute_list_init(&wanted, 10);
+        attribute_list_init(&available, 20);
 
         // Generate random policy attributes
         for(int i = 0; i < 10; i++){
@@ -127,10 +131,8 @@ int test_scheme(){
             char *val = malloc(sizeof(char)*ATTRIBUTE_VALUE_SIZE);
             generate_random_string(ATTRIBUTE_KEY_SIZE, key);
             generate_random_string(ATTRIBUTE_VALUE_SIZE, val);
-            sprintf(wanted[i].key, "%s", key);
-            sprintf(wanted[i].value, "%s", val);
-            sprintf(available[i].key, "%s", key);
-            sprintf(available[i].value, "%s", val);
+            attribute_list_add(&wanted, key, val);
+            attribute_list_add(&available, key, val);
             free(key);
             free(val);
         }
@@ -141,16 +143,15 @@ int test_scheme(){
             char *val = malloc(sizeof(char)*ATTRIBUTE_VALUE_SIZE);
             generate_random_string(ATTRIBUTE_KEY_SIZE, key);
             generate_random_string(ATTRIBUTE_VALUE_SIZE, val);
-            sprintf(available[i].key, "%s", key);
-            sprintf(available[i].value, "%s", val);
+            attribute_list_add(&available, key, val);
             free(key);
             free(val);
         }
 
         // Execute the scheme
         keygen(&testPub, &testPriv);
-        encrypt(&testPub, wanted, 10, plaintext, 256, &ciphertext);
-        int res = decrypt(&testPriv, available, 20, &ciphertext, decrypted_plaintext);
+        encrypt(&testPub, &wanted, plaintext, 256, &ciphertext);
+        int res = decrypt(&testPriv, &available, &ciphertext, decrypted_plaintext);
 
         if(res == 0) return 0;
         
@@ -234,6 +235,7 @@ int test_serialization(){
     PublicKey *deserialized_pub_key;
     CipherText ciphertext;
     CipherText *deserialized_ciphertext;
+    AttributeList att;
 
     uint8_t *serialized_ciphertext;
     uint8_t *serialized_priv_key;
@@ -242,8 +244,10 @@ int test_serialization(){
     uint8_t secret[SECRET_KEY_BYTES];
     generate_random_string(SECRET_KEY_BYTES, (char *)secret);
 
+    attribute_list_init(&att, 10);
+
     keygen(&testPub, &testPriv);
-    encrypt(&testPub, NULL, 0, secret, SECRET_KEY_BYTES, &ciphertext);
+    encrypt(&testPub, &att, secret, SECRET_KEY_BYTES, &ciphertext);
 
     serialized_priv_key = serialize_private_key(&testPriv);
     deserialized_priv_key = deserialize_private_key(serialized_priv_key);
@@ -354,6 +358,9 @@ int main(){
 
     PublicKey testPub;
     PrivateKey testPriv;
+    AttributeList testAttr;
+
+    attribute_list_init(&testAttr, 10);
 
     //Testing Bloom Filter
     startTime = get_current_time();
@@ -382,12 +389,12 @@ int main(){
     CipherText ciphertext;
     generate_random_string(SECRET_KEY_BYTES, (char *)testPlaintext);
     rbc_181_qre_init(&ciphertext.c.cipher);
-    print_result(startTime, test_encrypt(&testPub, testPlaintext, 128, &ciphertext));
+    print_result(startTime, test_encrypt(&testPub, &testAttr, testPlaintext, 128, &ciphertext));
 
     //Testing decaps
     startTime = get_current_time();
     printf("Testing decrypt... "); fflush(stdout);
-    print_result(startTime, test_decrypt(&testPriv, &ciphertext, testPlaintext, 128));
+    print_result(startTime, test_decrypt(&testPriv, &testAttr, &ciphertext, testPlaintext, 128));
 
     //Testing complete scheme
     startTime = get_current_time();

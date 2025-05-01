@@ -1,6 +1,6 @@
 #include "encrypt.h"
 
-int encrypt(PublicKey *pub, Attribute *attributes, int nbAttributes, uint8_t *plaintext, int plaintextSize, CipherText *ciphertext){
+int encrypt(PublicKey *pub, AttributeList * attributes, uint8_t *plaintext, int plaintextSize, CipherText *ciphertext){
 
     // Declarations
     rbc_181_vspace E;
@@ -30,12 +30,12 @@ int encrypt(PublicKey *pub, Attribute *attributes, int nbAttributes, uint8_t *pl
 
 
     // Fill bloom filters
-    for (int i = 0; i < nbAttributes; i++) {
+    for (int i = 0; i < attributes->count; i++) {
         char attribute_string[ATTRIBUTE_STRING_SIZE] = {0};
-        attribute_to_string(&attributes[i], attribute_string);
+        attribute_to_string(&attributes->attributes[i], attribute_string);
 
         bloom_filter_add(&bf_att, attribute_string);
-        bloom_filter_add(&bf_keys, attributes[i].key);
+        bloom_filter_add(&bf_keys, attributes->attributes[i].key);
     }
     
 

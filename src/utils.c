@@ -144,3 +144,27 @@ CipherText * deserialize_ciphertext(uint8_t *input){
 
     return ciphertext;
 }
+
+AttributeList * deserialize_attributes(uint8_t *input){
+    int lines = 0;
+    while (*input) {
+        if (*input == '\n') {
+            lines++;
+        }
+        input++;
+    }
+    
+    AttributeList *attributes = calloc(1, sizeof(AttributeList));
+    attribute_list_init(attributes, lines);
+
+    char *line = strtok((char *)input, "\n");
+    while (line != NULL) {
+        char key[ATTRIBUTE_KEY_SIZE] = {0};
+        char value[ATTRIBUTE_VALUE_SIZE] = {0};
+        sscanf(line, "%[^=]=%s", key, value);
+        attribute_list_add(attributes, key, value);
+        line = strtok(NULL, "\n");
+    }
+
+    return attributes;
+}

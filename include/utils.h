@@ -4,6 +4,7 @@
 #include "../lib/rbc_lib/rbc.h"
 #include <openssl/sha.h>
 #include "bloomfilter.h"
+#include "attribute.h"
 
 #define M 181
 #define N 179
@@ -52,5 +53,7 @@ PublicKey * deserialize_public_key(uint8_t *input);
 uint8_t * serialize_ciphertext(CipherText *ciphertext);
 
 CipherText * deserialize_ciphertext(uint8_t *input);
+
+AttributeList * deserialize_attributes(uint8_t *input);
 
 #endif

@@ -5,6 +5,6 @@
 #include "attribute.h"
 #include "bloomfilter.h"
 
-int encrypt(PublicKey *pub, Attribute *attributes, int nbAttributes, uint8_t *plaintext, int plaintextSize, CipherText *msg);
+int encrypt(PublicKey *pub, AttributeList * attributes, uint8_t *plaintext, int plaintextSize, CipherText *ciphertext);
 
 #endif

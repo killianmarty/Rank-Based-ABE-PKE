@@ -32,14 +32,25 @@ To generate the Public and Private Keys:
 To encrypt data:
 
 ```bash
-./abepke encrypt <public_key_file> <plaintext_file> <cipher_file>
+./abepke encrypt <public_key_file> <attributes_file> <plaintext_file> <cipher_file>
 ```
 
 To decrypt data:
 
 ```bash
-./abepke decrypt <private_key_file> <cipher_file> <plaintext_file>
+./abepke decrypt <private_key_file> <attributes_file> <cipher_file> <plaintext_file>
 ```
+
+## Attributes format
+
+Attributes need to be saved into a file with the following format:
+
+```
+key1=value1
+key2=value2
+```
+
+This file will then be used to encrypt or decrypt data.
 
 ## Parameters
 

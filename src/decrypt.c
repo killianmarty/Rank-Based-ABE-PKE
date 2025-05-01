@@ -1,7 +1,7 @@
 
 #include "decrypt.h"
 
-int decrypt(PrivateKey *priv, Attribute *attributes, int nbAttributes, CipherText *ciphertext,  uint8_t *plaintext) {
+int decrypt(PrivateKey *priv, AttributeList *attributes, CipherText *ciphertext,  uint8_t *plaintext) {
     
     // Declarations
     rbc_181_vspace E;
@@ -19,11 +19,11 @@ int decrypt(PrivateKey *priv, Attribute *attributes, int nbAttributes, CipherTex
 
 
     // Find the needed attributes and build the bloom filter
-    for (int i = 0; i < nbAttributes; i++)
+    for (int i = 0; i < attributes->count; i++)
     {
-      if(bloom_filter_check(&ciphertext->c.bf_keys, attributes[i].key)) {
+      if(bloom_filter_check(&ciphertext->c.bf_keys, attributes->attributes[i].key)) {
         char attribute_string[ATTRIBUTE_STRING_SIZE] = {0};
-        attribute_to_string(&attributes[i], attribute_string);
+        attribute_to_string(&attributes->attributes[i], attribute_string);
 
         bloom_filter_add(&bf_att, attribute_string);
       }

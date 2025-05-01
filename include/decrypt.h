@@ -4,6 +4,6 @@
 #include "utils.h"
 #include "attribute.h"
 
-int decrypt(PrivateKey *priv, Attribute *attributes, int nbAttributes, CipherText *ciphertext,  uint8_t *plaintext);
+int decrypt(PrivateKey *priv, AttributeList *attributes, CipherText *ciphertext,  uint8_t *plaintext);
 
 #endif
