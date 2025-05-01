@@ -339,9 +339,7 @@ int main(){
     printf("\n┌───────────────┐\n│ Running tests │\n└───────────────┘\n\n");
 
     rbc_181_field_init();
-    printf("Initializing field... \n");
     rbc_181_qre_init_modulus(N);
-    printf("ddfd\n");
 
     struct timespec startTime;
 
