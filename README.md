@@ -24,17 +24,17 @@ make test
 To generate the Public and Private Keys:
 
 ```bash
-./program keygen <public_key_file> <private_key_file>
+./abekem keygen <public_key_file> <private_key_file>
 ```
 
 To generate the DEM Key (currently an AES-512 key) and cipher it:
 
 ```bash
-./program encaps <public_key_file> <cipher_file>
+./abekem encaps <public_key_file> <cipher_file>
 ```
 
 To decode the cipher and recover the DEM Key:
 
 ```bash
-./programe decaps <private_key_file> <cipher_file>
+./abekeme decaps <private_key_file> <cipher_file>
 ```

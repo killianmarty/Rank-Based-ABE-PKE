@@ -4,7 +4,7 @@ LDFLAGS = -L./lib/rbc_lib -lrbc -lcrypto -O3
 
 SRC = $(wildcard src/*.c)
 OBJ = $(patsubst src/%.c, build/%.o, $(SRC))
-EXEC = program
+EXEC = abekem
 MAIN = src/main.c
 
 BUILD_DIR = build
