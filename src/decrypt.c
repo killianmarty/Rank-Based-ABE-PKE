@@ -1,7 +1,7 @@
 
-#include "decaps.h"
+#include "decrypt.h"
 
-int decaps(PrivateKey *priv, Message *msg, Attribute *attributes, int nbAttributes, uint8_t *shared_secret) {
+int decrypt(PrivateKey *priv, Attribute *attributes, int nbAttributes, CipherText *ciphertext,  uint8_t *plaintext) {
     
     // Declarations
     rbc_181_vspace E;
@@ -15,13 +15,13 @@ int decaps(PrivateKey *priv, Message *msg, Attribute *attributes, int nbAttribut
     rbc_181_qre_init(&bf_hash);
     rbc_181_qre_init(&cipher_dec);
     rbc_181_vspace_init(&E, N);
-    bloom_filter_init(&bf_att, msg->bf_keys.size, msg->bf_keys.num_hash_functions, msg->bf_keys.hash_len, (uint8_t**)msg->bf_keys.salts, msg->bf_keys.salt_len);
+    bloom_filter_init(&bf_att, ciphertext->c.bf_keys.size, ciphertext->c.bf_keys.num_hash_functions, ciphertext->c.bf_keys.hash_len, (uint8_t**)ciphertext->c.bf_keys.salts, ciphertext->c.bf_keys.salt_len);
 
 
     // Find the needed attributes and build the bloom filter
     for (int i = 0; i < nbAttributes; i++)
     {
-      if(bloom_filter_check(&msg->bf_keys, attributes[i].key)) {
+      if(bloom_filter_check(&ciphertext->c.bf_keys, attributes[i].key)) {
         char attribute_string[ATTRIBUTE_STRING_SIZE] = {0};
         attribute_to_string(&attributes[i], attribute_string);
 
@@ -32,16 +32,22 @@ int decaps(PrivateKey *priv, Message *msg, Attribute *attributes, int nbAttribut
     // Decoding syndrome
     H(bf_att.bit_array, bf_att.size, bf_hash);
     rbc_181_qre_inv(bf_hash, bf_hash);
-    rbc_181_qre_mul(cipher_dec, msg->cipher, bf_hash);
+    rbc_181_qre_mul(cipher_dec, ciphertext->c.cipher, bf_hash);
     rbc_181_qre_mul(xc, priv->x, cipher_dec);
     dimE = rbc_181_lrpc_RSR(E, R, priv->F, D, xc->v, N);
     
+    uint8_t hashedE[SECRET_KEY_BYTES];
     if(dimE != 0) {
       rbc_181_vec_echelonize(E, R);
       rbc_181_vec_to_string(support_string, E, R);
-      SHA512(support_string, R_BYTES, shared_secret);
+      SHA512(support_string, R_BYTES, hashedE);
     } else {
-      memset(shared_secret, 0, SECRET_KEY_BYTES); //We cannot decode (bad attributes or error)
+      memset(hashedE, 0, SECRET_KEY_BYTES); //We cannot decode (bad attributes or error)
+    }
+
+    // Compute the encrypted message
+    for (int i = 0; i < ciphertext->encrypted_message_size; i++) {
+      plaintext[i] = ciphertext->encrypted_message[i] ^ hashedE[i % SECRET_KEY_BYTES];
     }
     
 

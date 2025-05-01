@@ -38,7 +38,7 @@ typedef struct {
   * @param  hashbitlen  The desired number of output bits,
   *                     or 0 for an arbitrarily-long output.
   * @param  delimitedSuffix Bits that will be automatically appended to the end
-  *                         of the input message, as in domain separation.
+  *                         of the input CipherTextMetaData, as in domain separation.
   *                         This is a byte containing from 0 to 7 bits
   *                         formatted like the @a delimitedData parameter of
   *                         the Keccak_SpongeAbsorbLastFewBits() function.

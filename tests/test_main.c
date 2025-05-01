@@ -6,8 +6,8 @@
 
 #include "utils.h"
 #include "keygen.h"
-#include "encaps.h"
-#include "decaps.h"
+#include "encrypt.h"
+#include "decrypt.h"
 #include "bloomfilter.h"
 
 void generate_random_string(int length, char *output);
@@ -18,13 +18,14 @@ int test_keygen(PublicKey *testPub, PrivateKey *testPriv){
     return keygen(testPub, testPriv);
 }
 
-int test_encaps(PublicKey *testPub, uint8_t *shared_secret, Message *msg){
-    return encaps(testPub, NULL, 0, shared_secret, msg);
+int test_encrypt(PublicKey *testPub, uint8_t *testPlaintext, int testPlaintext_size, CipherText *ciphertext){
+    return encrypt(testPub, NULL, 0, testPlaintext, testPlaintext_size, ciphertext);
 }
 
-int test_decaps(uint8_t *shared_secret, PrivateKey *testPriv, Message *msg){
-    return decaps(testPriv, msg, NULL, 0, shared_secret);
-
+int test_decrypt(PrivateKey *testPriv, CipherText *ciphertext, uint8_t *plaintext, int testPlaintext_size){
+    uint8_t recovered_plaintext[128];
+    decrypt(testPriv, NULL, 0, ciphertext, recovered_plaintext);
+    return memcmp((char *)plaintext, (char *)recovered_plaintext, testPlaintext_size) == 0;
 }
 
 int test_H(){
@@ -115,10 +116,10 @@ int test_scheme(){
         // Declarations
         PublicKey testPub;
         PrivateKey testPriv;
-        Message msg;
+        CipherText ciphertext;
         Attribute wanted[10], available[20];
-        uint8_t shared_secret[SECRET_KEY_BYTES];
-        uint8_t decapsed_secret[SECRET_KEY_BYTES];
+        uint8_t plaintext[256];
+        uint8_t decrypted_plaintext[256];
 
         // Generate random policy attributes
         for(int i = 0; i < 10; i++){
@@ -148,19 +149,19 @@ int test_scheme(){
 
         // Execute the scheme
         keygen(&testPub, &testPriv);
-        encaps(&testPub, wanted, 10, shared_secret, &msg);
-        int res = decaps(&testPriv, &msg, available, 20, decapsed_secret);
+        encrypt(&testPub, wanted, 10, plaintext, 256, &ciphertext);
+        int res = decrypt(&testPriv, available, 20, &ciphertext, decrypted_plaintext);
 
         if(res == 0) return 0;
         
         // Compare the shared secret
-        if (memcmp(shared_secret, decapsed_secret, SECRET_KEY_BYTES) != 0)
+        if (memcmp(plaintext, decrypted_plaintext, 256) != 0)
         {
             return 0;
         }
         
         // Free memory
-        rbc_181_qre_clear(msg.cipher);
+        rbc_181_qre_clear(ciphertext.c.cipher);
         rbc_181_qre_clear(testPub.h);
         rbc_181_qre_clear(testPriv.x);
         rbc_181_qre_clear(testPriv.y);
@@ -231,16 +232,18 @@ int test_serialization(){
     PrivateKey *deserialized_priv_key;
     PublicKey testPub;
     PublicKey *deserialized_pub_key;
-    Message msg;
-    Message *deserialized_msg;
+    CipherText ciphertext;
+    CipherText *deserialized_ciphertext;
 
-    uint8_t *serialized_msg;
+    uint8_t *serialized_ciphertext;
     uint8_t *serialized_priv_key;
     uint8_t *serialized_pub_key;
+
     uint8_t secret[SECRET_KEY_BYTES];
+    generate_random_string(SECRET_KEY_BYTES, (char *)secret);
 
     keygen(&testPub, &testPriv);
-    encaps(&testPub, NULL, 0, secret, &msg);
+    encrypt(&testPub, NULL, 0, secret, SECRET_KEY_BYTES, &ciphertext);
 
     serialized_priv_key = serialize_private_key(&testPriv);
     deserialized_priv_key = deserialize_private_key(serialized_priv_key);
@@ -248,8 +251,8 @@ int test_serialization(){
     serialized_pub_key = serialize_public_key(&testPub);
     deserialized_pub_key = deserialize_public_key(serialized_pub_key);
 
-    serialized_msg = serialize_message(&msg);
-    deserialized_msg = deserialize_message(serialized_msg);
+    serialized_ciphertext = serialize_ciphertext(&ciphertext);
+    deserialized_ciphertext = deserialize_ciphertext(serialized_ciphertext);
 
     if(compare_qre(testPriv.x, deserialized_priv_key->x) == 0){
         return 0;
@@ -266,16 +269,22 @@ int test_serialization(){
         return 0;
     }
     
-    if(compare_qre(msg.cipher, deserialized_msg->cipher) == 0){
+    if(compare_qre(ciphertext.c.cipher, deserialized_ciphertext->c.cipher) == 0){
         return 0;
     }
-    if(memcmp(msg.bf_keys.bit_array, deserialized_msg->bf_keys.bit_array, msg.bf_keys.size) != 0){
+    if(memcmp(ciphertext.c.bf_keys.bit_array, deserialized_ciphertext->c.bf_keys.bit_array, ciphertext.c.bf_keys.size) != 0){
         return 0;
     }
-    for(int i = 0; i < msg.bf_keys.num_hash_functions; i++){
-        if(memcmp(msg.bf_keys.salts[i], deserialized_msg->bf_keys.salts[i], msg.bf_keys.salt_len) != 0){
+    for(int i = 0; i < ciphertext.c.bf_keys.num_hash_functions; i++){
+        if(memcmp(ciphertext.c.bf_keys.salts[i], deserialized_ciphertext->c.bf_keys.salts[i], ciphertext.c.bf_keys.salt_len) != 0){
             return 0;
         }
+    }
+    if(ciphertext.encrypted_message_size != deserialized_ciphertext->encrypted_message_size){
+        return 0;
+    }
+    if(memcmp(ciphertext.encrypted_message, deserialized_ciphertext->encrypted_message, ciphertext.encrypted_message_size) != 0){
+        return 0;
     }
 
     return 1;
@@ -366,19 +375,19 @@ int main(){
     printf("Testing keygen... "); fflush(stdout);
     print_result(startTime, test_keygen(&testPub, &testPriv));
 
-    //Testing encaps
+    //Testing encrypt
     startTime = get_current_time();
-    printf("Testing encaps... "); fflush(stdout);
-    uint8_t shared_secret[SECRET_KEY_BYTES];
-    Message msg;
-    rbc_181_qre_init(&msg.cipher);
-    print_result(startTime, test_encaps(&testPub, shared_secret, &msg));
+    printf("Testing encrypt... "); fflush(stdout);
+    uint8_t testPlaintext[128];
+    CipherText ciphertext;
+    generate_random_string(SECRET_KEY_BYTES, (char *)testPlaintext);
+    rbc_181_qre_init(&ciphertext.c.cipher);
+    print_result(startTime, test_encrypt(&testPub, testPlaintext, 128, &ciphertext));
 
     //Testing decaps
     startTime = get_current_time();
-    printf("Testing decaps... "); fflush(stdout);
-    uint8_t decapsed_secret[SECRET_KEY_BYTES];
-    print_result(startTime, test_decaps(decapsed_secret, &testPriv, &msg));
+    printf("Testing decrypt... "); fflush(stdout);
+    print_result(startTime, test_decrypt(&testPriv, &ciphertext, testPlaintext, 128));
 
     //Testing complete scheme
     startTime = get_current_time();

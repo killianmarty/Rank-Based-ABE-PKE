@@ -4,14 +4,14 @@
 
 #include "utils.h"
 #include "keygen.h"
-#include "encaps.h"
-#include "decaps.h"
+#include "encrypt.h"
+#include "decrypt.h"
 
 int main(int argc, char *argv[]) {
-	if (argc != 4) {
-		printf("Usage : ./main [mode] <input> <output>\n");
-		return 0;
-	}
+	// if (argc != 4) {
+	// 	printf("Usage : ./main [mode] <input> <output>\n");
+	// 	return 0;
+	// }
 
 	rbc_181_field_init();
 	rbc_181_qre_init_modulus(N);
@@ -37,37 +37,42 @@ int main(int argc, char *argv[]) {
 		fclose(pubFile); fclose(privFile);
 	}
 
-	else if (strcmp(argv[1], "encaps") == 0) {
+	else if (strcmp(argv[1], "encrypt") == 0) {
 		uint8_t serialized_public_key[SERIALIZED_PUBLIC_KEY_SIZE];
 		FILE *pubFile = fopen(argv[2], "rb");
-		FILE *msgFile = fopen(argv[3], "wb");
-		if (!pubFile || !msgFile) {
+		FILE *plaintextFile = fopen(argv[3], "rb");
+		FILE *ciphertextFile = fopen(argv[4], "wb");
+		if (!pubFile || !plaintextFile || !ciphertextFile) {
 			printf("No such file or directory\n");
 			exit(1);
 		}
 		fread(serialized_public_key, sizeof(uint8_t), SERIALIZED_PUBLIC_KEY_SIZE, pubFile);
 		fclose(pubFile);
 
+		fseek(plaintextFile, 0, SEEK_END);
+		long file_size = ftell(plaintextFile);
+		rewind(plaintextFile);
+		uint8_t *plaintext = malloc(file_size + 1);
+		fread(plaintext, sizeof(uint8_t), file_size, plaintextFile);
+		plaintext[file_size] = '\0';
+		fclose(plaintextFile);
+
 		PublicKey *pubKey = deserialize_public_key(serialized_public_key);
-		Message msg;
-		uint8_t shared_secret[SECRET_KEY_BYTES];
-		encaps(pubKey, NULL, 0, shared_secret, &msg);
+		CipherText ciphertext;
+		encrypt(pubKey, NULL, 0, plaintext, file_size, &ciphertext);
 
-		printf("AES Key: ");
-		for (int i = 0; i < SECRET_KEY_BYTES; i++) printf("%02x", shared_secret[i]);
-		printf("\n");
-
-		uint8_t *serialized_message = serialize_message(&msg);
-		int size = 4 * sizeof(uint32_t) + msg.bf_keys.num_hash_functions * msg.bf_keys.salt_len + msg.bf_keys.size + SERIALIZED_QRE_SIZE;
-		fwrite(serialized_message, sizeof(uint8_t), size, msgFile);
-		fclose(msgFile);
+		uint8_t *serialized_ciphertext = serialize_ciphertext(&ciphertext);
+		int size = 6*sizeof(uint32_t) + ciphertext.encrypted_message_size*sizeof(uint8_t) + ciphertext.c.bf_keys.num_hash_functions*ciphertext.c.bf_keys.salt_len + ciphertext.c.bf_keys.size + SERIALIZED_QRE_SIZE;
+		fwrite(serialized_ciphertext, sizeof(uint8_t), size, ciphertextFile);
+		fclose(ciphertextFile);
 	}
 
-	else if (strcmp(argv[1], "decaps") == 0) {
+	else if (strcmp(argv[1], "decrypt") == 0) {
 		uint8_t serialized_private_key[SERIALIZED_PRIVATE_KEY_SIZE] = {0};
 		FILE *privFile = fopen(argv[2], "rb");
-		FILE *msgFile = fopen(argv[3], "rb");
-		if (!privFile || !msgFile) {
+		FILE *ciphertextFile = fopen(argv[3], "rb");
+		FILE *plaintextFile = fopen(argv[4], "wb");
+		if (!privFile || !ciphertextFile || !plaintextFile) {
 			printf("No such file or directory\n");
 			exit(1);
 		}
@@ -76,25 +81,31 @@ int main(int argc, char *argv[]) {
 		fclose(privFile);
 
 		int32_t data_size = 0;
-		fread(&data_size, sizeof(uint32_t), 1, msgFile);
-		uint8_t *serialized_message = calloc(data_size, sizeof(uint8_t));
-		rewind(msgFile);
-		fread(serialized_message, sizeof(uint8_t), data_size, msgFile);
-		fclose(msgFile);
+		fread(&data_size, sizeof(uint32_t), 1, ciphertextFile);
+		uint8_t *serialized_ciphertext = calloc(data_size, sizeof(uint8_t));
+		rewind(ciphertextFile);
+		fread(serialized_ciphertext, sizeof(uint8_t), data_size, ciphertextFile);
+		fclose(ciphertextFile);
 
-		Message *msg = deserialize_message(serialized_message);
+		CipherText *ciphertext = deserialize_ciphertext(serialized_ciphertext);
 		PrivateKey *privKey = deserialize_private_key(serialized_private_key);
-		free(serialized_message);
+		free(serialized_ciphertext);
 
-		uint8_t shared_secret[SECRET_KEY_BYTES];
-		if (decaps(privKey, msg, NULL, 0, shared_secret) == 0) {
-			printf("Unable to decode the AES Key.\n");
+		uint8_t *decrypted_plaintext = malloc(ciphertext->encrypted_message_size * sizeof(uint8_t));
+		if (!decrypted_plaintext) {
+			printf("Memory allocation failed.\n");
 			exit(1);
 		}
-
-		printf("AES Key: ");
-		for (int i = 0; i < SECRET_KEY_BYTES; i++) printf("%02x", shared_secret[i]);
-		printf("\n");
+		
+		if (decrypt(privKey, NULL, 0, ciphertext, decrypted_plaintext) == 0) {
+			printf("Unable to decrypt data.\n");
+			free(decrypted_plaintext);
+			exit(1);
+		}
+		
+		fwrite(decrypted_plaintext, sizeof(uint8_t), ciphertext->encrypted_message_size, plaintextFile);
+		free(decrypted_plaintext);
+		fclose(plaintextFile);
 	}
 
 	else {

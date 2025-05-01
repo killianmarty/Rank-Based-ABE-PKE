@@ -92,50 +92,55 @@ PublicKey * deserialize_public_key(uint8_t *input){
     return key;
 }
 
-uint8_t * serialize_message(Message *msg){
-    int data_size = 5*sizeof(uint32_t) + msg->bf_keys.num_hash_functions*msg->bf_keys.salt_len + msg->bf_keys.size + SERIALIZED_QRE_SIZE;
+uint8_t * serialize_ciphertext(CipherText *ciphertext){
+    int data_size = 6*sizeof(uint32_t) + ciphertext->encrypted_message_size*sizeof(uint8_t) + ciphertext->c.bf_keys.num_hash_functions*ciphertext->c.bf_keys.salt_len + ciphertext->c.bf_keys.size + SERIALIZED_QRE_SIZE;
     uint8_t *output = calloc(data_size, sizeof(uint8_t));
     uint8_t cipher[SERIALIZED_QRE_SIZE];
 
-    rbc_181_qre_to_string(cipher, msg->cipher);
+    rbc_181_qre_to_string(cipher, ciphertext->c.cipher);
     
     memcpy(output, &data_size, sizeof(int32_t));
-    memcpy(output + sizeof(int32_t), &msg->bf_keys.size, sizeof(int32_t));
-    memcpy(output + 2*sizeof(int32_t), &msg->bf_keys.num_hash_functions, sizeof(int32_t));
-    memcpy(output + 3*sizeof(int32_t), &msg->bf_keys.hash_len, sizeof(int32_t));
-    memcpy(output + 4*sizeof(int32_t), &msg->bf_keys.salt_len, sizeof(int32_t));
-    for (int i = 0; i < msg->bf_keys.num_hash_functions; i++)
+    memcpy(output + sizeof(int32_t), &ciphertext->c.bf_keys.size, sizeof(int32_t));
+    memcpy(output + 2*sizeof(int32_t), &ciphertext->c.bf_keys.num_hash_functions, sizeof(int32_t));
+    memcpy(output + 3*sizeof(int32_t), &ciphertext->c.bf_keys.hash_len, sizeof(int32_t));
+    memcpy(output + 4*sizeof(int32_t), &ciphertext->c.bf_keys.salt_len, sizeof(int32_t));
+    memcpy(output + 5*sizeof(int32_t), &ciphertext->encrypted_message_size, sizeof(int32_t));
+    for (int i = 0; i < ciphertext->c.bf_keys.num_hash_functions; i++)
     {
-        memcpy(output + 5*sizeof(int32_t) + i*msg->bf_keys.salt_len, msg->bf_keys.salts[i], msg->bf_keys.salt_len);
+        memcpy(output + 6*sizeof(int32_t) + i*ciphertext->c.bf_keys.salt_len, ciphertext->c.bf_keys.salts[i], ciphertext->c.bf_keys.salt_len);
     }
-    memcpy(output + 5*sizeof(int32_t) + msg->bf_keys.num_hash_functions*msg->bf_keys.salt_len, msg->bf_keys.bit_array, msg->bf_keys.size);
-    memcpy(output + 5*sizeof(int32_t) + msg->bf_keys.num_hash_functions*msg->bf_keys.salt_len + msg->bf_keys.size, cipher, SERIALIZED_QRE_SIZE);
-    
+    memcpy(output + 6*sizeof(int32_t) + ciphertext->c.bf_keys.num_hash_functions*ciphertext->c.bf_keys.salt_len, ciphertext->c.bf_keys.bit_array, ciphertext->c.bf_keys.size);
+    memcpy(output + 6*sizeof(int32_t) + ciphertext->c.bf_keys.num_hash_functions*ciphertext->c.bf_keys.salt_len + ciphertext->c.bf_keys.size, cipher, SERIALIZED_QRE_SIZE);
+    memcpy(output + 6*sizeof(int32_t) + ciphertext->c.bf_keys.num_hash_functions*ciphertext->c.bf_keys.salt_len + ciphertext->c.bf_keys.size + SERIALIZED_QRE_SIZE, ciphertext->encrypted_message, ciphertext->encrypted_message_size);
 
     return output;
 }
 
-Message * deserialize_message(uint8_t *input){
+CipherText * deserialize_ciphertext(uint8_t *input){
 
-    Message *msg = malloc(sizeof(Message));
+    CipherText *ciphertext = malloc(sizeof(CipherText));
     
-    memcpy(&msg->bf_keys.size, input + sizeof(int32_t), sizeof(int32_t));
-    memcpy(&msg->bf_keys.num_hash_functions, input + 2*sizeof(int32_t), sizeof(int32_t));
-    memcpy(&msg->bf_keys.hash_len, input + 3*sizeof(int32_t), sizeof(int32_t));
-    memcpy(&msg->bf_keys.salt_len, input + 4*sizeof(int32_t), sizeof(int32_t));
+    memcpy(&ciphertext->c.bf_keys.size, input + sizeof(int32_t), sizeof(int32_t));
+    memcpy(&ciphertext->c.bf_keys.num_hash_functions, input + 2*sizeof(int32_t), sizeof(int32_t));
+    memcpy(&ciphertext->c.bf_keys.hash_len, input + 3*sizeof(int32_t), sizeof(int32_t));
+    memcpy(&ciphertext->c.bf_keys.salt_len, input + 4*sizeof(int32_t), sizeof(int32_t));
+    memcpy(&ciphertext->encrypted_message_size, input + 5*sizeof(int32_t), sizeof(int32_t));
     
-    msg->bf_keys.salts = malloc(msg->bf_keys.num_hash_functions*sizeof(uint8_t*));
-    for (int i = 0; i < msg->bf_keys.num_hash_functions; i++)
+    ciphertext->c.bf_keys.salts = malloc(ciphertext->c.bf_keys.num_hash_functions * sizeof(uint8_t*));
+    for (int i = 0; i < ciphertext->c.bf_keys.num_hash_functions; i++)
     {
-        msg->bf_keys.salts[i] = malloc(msg->bf_keys.salt_len*sizeof(uint8_t));
-        memcpy(msg->bf_keys.salts[i], input + 5*sizeof(int32_t) + i*msg->bf_keys.salt_len, msg->bf_keys.salt_len);
+        ciphertext->c.bf_keys.salts[i] = malloc(ciphertext->c.bf_keys.salt_len * sizeof(uint8_t));
+        memcpy(ciphertext->c.bf_keys.salts[i], input + 6*sizeof(int32_t) + i*ciphertext->c.bf_keys.salt_len, ciphertext->c.bf_keys.salt_len);
     }
     
-    msg->bf_keys.bit_array = malloc(msg->bf_keys.size*sizeof(uint8_t));
-    memcpy(msg->bf_keys.bit_array, input + 5*sizeof(int32_t) + msg->bf_keys.num_hash_functions*msg->bf_keys.salt_len, msg->bf_keys.size);
+    ciphertext->c.bf_keys.bit_array = malloc(ciphertext->c.bf_keys.size * sizeof(uint8_t));
+    memcpy(ciphertext->c.bf_keys.bit_array, input + 6*sizeof(int32_t) + ciphertext->c.bf_keys.num_hash_functions*ciphertext->c.bf_keys.salt_len, ciphertext->c.bf_keys.size);
     
-    rbc_181_qre_init(&msg->cipher);
-    rbc_181_qre_from_string(msg->cipher, input + 5*sizeof(int32_t) + msg->bf_keys.num_hash_functions*msg->bf_keys.salt_len + msg->bf_keys.size);
+    rbc_181_qre_init(&ciphertext->c.cipher);
+    rbc_181_qre_from_string(ciphertext->c.cipher, input + 6*sizeof(int32_t) + ciphertext->c.bf_keys.num_hash_functions*ciphertext->c.bf_keys.salt_len + ciphertext->c.bf_keys.size);
+    
+    ciphertext->encrypted_message = malloc(ciphertext->encrypted_message_size * sizeof(uint8_t));
+    memcpy(ciphertext->encrypted_message, input + 6*sizeof(int32_t) + ciphertext->c.bf_keys.num_hash_functions*ciphertext->c.bf_keys.salt_len + ciphertext->c.bf_keys.size + SERIALIZED_QRE_SIZE, ciphertext->encrypted_message_size);
 
-    return msg;
+    return ciphertext;
 }

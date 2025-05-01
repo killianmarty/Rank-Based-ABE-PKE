@@ -1,6 +1,6 @@
 /**
  * \file gabidulin.h
- * \brief Functions to encode and decode messages using Gabidulin codes
+ * \brief Functions to encode and decode CipherTextMetaDatas using Gabidulin codes
  *
  * The decoding algorithm provided is based on q_polynomials reconstruction, see \cite gabidulin:welch and \cite gabidulin:generalized for details.
  *
@@ -19,7 +19,7 @@
   */
 typedef struct rbc_127_gabidulin {
   rbc_127_poly g; /**< Generator vector defining the code */
-  uint32_t k; /**< Size of vectors representing messages */
+  uint32_t k; /**< Size of vectors representing CipherTextMetaDatas */
   uint32_t n; /**< Size of vectors representing codewords */
 } rbc_127_gabidulin;
 

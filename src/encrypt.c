@@ -1,6 +1,6 @@
-#include "encaps.h"
+#include "encrypt.h"
 
-int encaps(PublicKey *pub, Attribute *attributes, int nbAttributes, uint8_t *shared_secret, Message *msg){
+int encrypt(PublicKey *pub, Attribute *attributes, int nbAttributes, uint8_t *plaintext, int plaintextSize, CipherText *ciphertext){
 
     // Declarations
     rbc_181_vspace E;
@@ -15,7 +15,7 @@ int encaps(PublicKey *pub, Attribute *attributes, int nbAttributes, uint8_t *sha
     rbc_181_qre_init(&E1);
     rbc_181_qre_init(&E2);
     rbc_181_qre_init(&bf_hash);
-    rbc_181_qre_init(&(msg->cipher));
+    rbc_181_qre_init(&(ciphertext->c.cipher));
 
 
     // Generate salts and init bloom filters
@@ -49,16 +49,23 @@ int encaps(PublicKey *pub, Attribute *attributes, int nbAttributes, uint8_t *sha
 
     // Generate ciphertext
     H(bf_att.bit_array, bf_att.size, bf_hash);
-    rbc_181_qre_mul(msg->cipher, E2, pub->h);
-    rbc_181_qre_add(msg->cipher, msg->cipher, E1);
-    rbc_181_qre_mul(msg->cipher, msg->cipher, bf_hash);
-    msg->bf_keys = bf_keys;
+    rbc_181_qre_mul(ciphertext->c.cipher, E2, pub->h);
+    rbc_181_qre_add(ciphertext->c.cipher, ciphertext->c.cipher, E1);
+    rbc_181_qre_mul(ciphertext->c.cipher, ciphertext->c.cipher, bf_hash);
+    ciphertext->c.bf_keys = bf_keys;
 
-    // Generate shared secret
+    // Hash E
+    uint8_t hashedE[SECRET_KEY_BYTES];
     rbc_181_vec_echelonize(E, R);
     rbc_181_vec_to_string(support_string, E, R);
-    SHA512(support_string, R_BYTES, shared_secret);
+    SHA512(support_string, R_BYTES, hashedE);
 
+    // Compute the encrypted message
+    ciphertext->encrypted_message_size = plaintextSize;
+    ciphertext->encrypted_message = malloc(plaintextSize * sizeof(uint8_t));
+    for (int i = 0; i < plaintextSize; i++) {
+        ciphertext->encrypted_message[i] = plaintext[i] ^ hashedE[i % SECRET_KEY_BYTES];
+    }
 
     // Free memory
     random_source_clear(&prng);

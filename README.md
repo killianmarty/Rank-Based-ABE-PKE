@@ -1,8 +1,8 @@
-# Rank-Based ABE KEM
+# Rank-Based ABE PKE
 
 ## Introduction
 
-This algorithm is based on RolloI and add a layer of ABE using cipher text policy with bloom filters.
+This algorithm is based on RolloII and add a layer of ABE using cipher text policy with bloom filters.
 In this implementation, the RBC-Lib is used.
 
 ## Installation
@@ -26,19 +26,19 @@ make test
 To generate the Public and Private Keys:
 
 ```bash
-./abekem keygen <public_key_file> <private_key_file>
+./abepke keygen <public_key_file> <private_key_file>
 ```
 
-To generate the DEM Key (currently an AES-512 key) and cipher it:
+To encrypt data:
 
 ```bash
-./abekem encaps <public_key_file> <cipher_file>
+./abepke encrypt <public_key_file> <plaintext_file> <cipher_file>
 ```
 
-To decode the cipher and recover the DEM Key:
+To decrypt data:
 
 ```bash
-./abekeme decaps <private_key_file> <cipher_file>
+./abepke decrypt <private_key_file> <cipher_file> <plaintext_file>
 ```
 
 ## Parameters
