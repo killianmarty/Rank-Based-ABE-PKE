@@ -21,15 +21,15 @@ typedef struct {
     uint8_t salts[NUM_HASH_FUNCTIONS][SALT_SIZE];
 } Message;
 
-
-#define N 113
+#define M 181
+#define N 179
 #define D 9
 #define R 9
 #define R_BYTES 204
 #define SECRET_KEY_BYTES 64
 
-#define SERIALIZED_QRE_SIZE 4096
-#define SERIALIZED_VSPACE_SIZE 4096
+#define SERIALIZED_QRE_SIZE (M*(N+1) / 8) + 1
+#define SERIALIZED_VSPACE_SIZE (M * D / 8)+1 //TODO: sure about D everywhere ?
 #define SERIALIZED_PRIVATE_KEY_SIZE (2*SERIALIZED_QRE_SIZE + SERIALIZED_VSPACE_SIZE)
 #define SERIALIZED_PUBLIC_KEY_SIZE SERIALIZED_QRE_SIZE
 

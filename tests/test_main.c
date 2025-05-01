@@ -339,7 +339,9 @@ int main(){
     printf("\n┌───────────────┐\n│ Running tests │\n└───────────────┘\n\n");
 
     rbc_181_field_init();
+    printf("Initializing field... \n");
     rbc_181_qre_init_modulus(N);
+    printf("ddfd\n");
 
     struct timespec startTime;
 
@@ -355,7 +357,7 @@ int main(){
     startTime = get_current_time();
     printf("Testing H... "); fflush(stdout);
     print_result(startTime, test_H());
-
+    
     //Testing H with Bloom Filter
     startTime = get_current_time();
     printf("Testing H with Bloom Filter... "); fflush(stdout);

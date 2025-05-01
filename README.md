@@ -38,3 +38,19 @@ To decode the cipher and recover the DEM Key:
 ```bash
 ./abekeme decaps <private_key_file> <cipher_file>
 ```
+
+## Parameters
+
+For the N parameter, the allowed values are 83, 113, 149 and 179.
+The M parameter is constant in this implementation (M=181)
+R and D parameters are respectively the rank of F, and E. These parameters needs to have a low value.
+
+### Security
+
+Here is the parameters needed for each level of security:
+
+|Security Level| N | R | D |
+|--------------|---|---|---|
+|128           |83 |7  |8  |
+|192           |97 |8  |8  |
+|256           |113|9  |9  |
