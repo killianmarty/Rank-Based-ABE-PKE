@@ -7,9 +7,13 @@ In this implementation, the RBC-Lib is used.
 
 ## Installation
 
-Warning, you will first need to download the rbclib and compile it to obtain librbc.a and librbc-nist.a files.
+Warning, you will first need to install rbc_lib. Just run:
 
-Clone this repo, copy `librbc.a` and `librbc-nist.a` into `lib/rbc_lib` and run:
+```bash
+make install_rbc
+```
+
+Then just run:
 
 ```bash
 make

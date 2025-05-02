@@ -13,7 +13,18 @@ TEST_SRC = $(filter-out $(MAIN), $(SRC)) tests/test_main.c
 TEST_OBJ = $(patsubst src/%.c, build/%.o, $(filter-out $(MAIN), $(SRC)))
 TEST_EXEC = tests/test_runner
 
-all: $(BUILD_DIR) $(EXEC)
+
+all: check_install_rbc $(BUILD_DIR) $(EXEC)
+
+check_install_rbc:
+	@if [ ! -f lib/rbc_lib/librbc.a ] || [ ! -f lib/rbc_lib/librbc-nist.a ]; then \
+		echo "RBC library not found, install it with: make install_rbc"; \
+		exit 1; \
+	fi
+
+install_rbc:
+	chmod +x install_rbc.sh
+	./install_rbc.sh
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
@@ -34,4 +45,4 @@ build/test_main.o: tests/test_main.c | $(BUILD_DIR)
 clean:
 	rm -rf $(BUILD_DIR) $(EXEC) $(TEST_EXEC)
 
-.PHONY: clean
+.PHONY: clean install_rbc maybe_install_rbc
