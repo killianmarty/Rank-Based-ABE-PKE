@@ -6,8 +6,8 @@
 #include "bloomfilter.h"
 #include "attribute.h"
 
-#define M 127
-#define N 179
+#define M 181
+#define N 113
 #define D 9
 #define R 9
 #define R_BYTES 204
