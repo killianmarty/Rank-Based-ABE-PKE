@@ -25,6 +25,12 @@ You can also run unit tests with:
 make test
 ```
 
+Moreover, we can run benchmarks with the following command:
+
+```bash
+sudo perf stat ./benchmark.sh [keygen | encrypt | decrypt] <nb_iter>
+```
+
 ## Usage
 
 To generate the Public and Private Keys:
