@@ -35,6 +35,15 @@ $(EXEC): $(OBJ)
 build/%.o: src/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@ $(LDFLAGS)
 
+keygen: all
+	@read -p "Enter filename for the public key (default: public.key): " pub; \
+	 read -p "Enter filename for the private key (default: private.key): " priv; \
+	 pub=$${pub:-public.key}; \
+	 priv=$${priv:-private.key}; \
+	 echo "Generating keys..."; \
+	 ./$(EXEC) keygen $$pub $$priv; \
+	 echo "Keys generated: $$pub (public), $$priv (private)"
+
 test: $(TEST_OBJ) build/test_main.o
 	$(CC) $(CFLAGS) $(TEST_OBJ) build/test_main.o -o $(TEST_EXEC) $(LDFLAGS)
 	./$(TEST_EXEC)

@@ -30,7 +30,7 @@ make test
 To generate the Public and Private Keys:
 
 ```bash
-./abepke keygen <public_key_file> <private_key_file>
+make keygen
 ```
 
 To encrypt data:
@@ -78,6 +78,6 @@ N. Aragon, L. Bidoux, et. al. RBC Library. Version 1.3. https://rbc-lib.org.
 
 ## Authors
 
-This project was part of a larger research projet conducted by Killian Marty, Thomas Chourret, Leandro Rodriguez, Baptiste Rébillard, Aurélien Pouilles, Gabriel Lanoux and Sophia Salinas.
+This project was part of a larger research projet conducted by Killian Marty, Thomas Chourret, Leandro Rodriguez, Baptiste Rébillard, Aurélien Pouilles, Gabriel Lanoux and Sofia Salinas.
 
 This specific encryption scheme was developped and implemented by Killian Marty.
