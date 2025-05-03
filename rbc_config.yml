@@ -6,13 +6,13 @@ rbc_core_layer_implem: avx
 
 rbc_build_parameters: [
 
-  {"name":"rolloI",    "sec_lvl":256,   "m":181,    "n":179},
-  {"name":"rolloI",    "sec_lvl":192,   "m":151,    "n":149},
-  {"name":"rolloI",    "sec_lvl":128,   "m":127,    "n":113},
-  {"name":"rolloI",    "sec_lvl":128,   "m":97,    "n":97},
-  {"name":"rolloI",    "sec_lvl":128,   "m":89,    "n":83},
-  {"name":"rolloI",    "sec_lvl":128,   "m":83,    "n":83},
-  {"name":"rolloI",    "sec_lvl":128,   "m":67,    "n":83}
+  {"name":"rolloII",    "sec_lvl":256,   "m":181,    "n":211},
+  {"name":"rolloII",    "sec_lvl":192,   "m":151,    "n":193},
+  {"name":"rolloII",    "sec_lvl":128,   "m":127,    "n":189},
+  {"name":"rolloII",    "sec_lvl":128,   "m":97,    "n":179},
+  {"name":"rolloII",    "sec_lvl":128,   "m":89,    "n":149},
+  {"name":"rolloII",    "sec_lvl":128,   "m":83,    "n":113},
+  {"name":"rolloII",    "sec_lvl":128,   "m":67,    "n":83}
 
 ]
 

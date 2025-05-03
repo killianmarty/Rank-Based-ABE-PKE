@@ -6,10 +6,10 @@
 #include "bloomfilter.h"
 #include "attribute.h"
 
-#define M 181
-#define N 179
+#define M 97
+#define N 211
 #define D 9
-#define R 9
+#define R 8
 #define R_BYTES 204
 #define SECRET_KEY_BYTES 64
 
