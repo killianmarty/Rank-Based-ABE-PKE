@@ -34,10 +34,10 @@ sudo perf stat ./benchmark.sh [keygen | encrypt | decrypt] <nb_iter>
 
 ## Usage
 
-To generate the Public and Private Keys:
+To generate the public and private keys:
 
 ```bash
-make keygen
+./abepke keygen <public_key_file> <private_key_file>
 ```
 
 To encrypt data:
