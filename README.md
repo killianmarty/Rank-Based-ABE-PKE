@@ -65,6 +65,8 @@ This file will then be used to encrypt or decrypt data.
 
 ## Scheme
 
+Because this scheme is based on Rollo-II, the principle is very similar.
+
 ### Rollo-II scheme
 
 #### Keygen
@@ -110,9 +112,11 @@ Output plaintext = (decrypted)
 
 #### Auxiliary functions
 
-BF(Attributes): Computes Bloom filter of Attributes.
+`BF(Attributes)`: Computes Bloom filter of Attributes.
 
-H(BF): Hash a Bloom Filter into a $F_{q^m}^n$ element.
+`H(BF)`: Hash a Bloom Filter into a $F_{q^m}^n$ element.
+
+`RecoverBF(msg.BF_keys, Attributes)`: Create a Bloom Filter with the only attributes of the user that are needed to decrypt the cipher.
 
 #### Keygen
 
@@ -210,7 +214,9 @@ Theses benchmarks were performed with the following configuration on `10 000` it
 
 ## Credits
 
-N. Aragon, L. Bidoux, et. al. RBC Library. Version 1.3. https://rbc-lib.org. 
+N. Aragon, L. Bidoux, et. al. RBC Library. Version 1.3. https://rbc-lib.org.
+
+Aguilar Melchor, C., Aragon, N., Bardet, M., Bettaieb, S., Bidoux, L., Blazy, O., Deneuville, J.-C., Gaborit, P., Hauteville, A., Otmani, A., Ruatta, O., Tillich, J.-P., & Zémor, G. (2020, April 21). ROLLO – Rank-Ouroboros, LAKE & LOCKER. https://pqc-rollo.org.
 
 ## Authors
 
