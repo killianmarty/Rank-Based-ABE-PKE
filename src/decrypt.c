@@ -7,7 +7,7 @@ int decrypt(PrivateKey *priv, AttributeList *attributes, CipherText *ciphertext,
     rbc_vspace E;
     rbc_qre xc, cipher_dec, bf_hash;
     BloomFilter bf_att;
-    uint8_t support_string[R_BYTES];
+    uint8_t support_string[R_BYTES] = {0};
     uint32_t dimE = 0;
     
     // Initialisations
@@ -36,7 +36,7 @@ int decrypt(PrivateKey *priv, AttributeList *attributes, CipherText *ciphertext,
     rbc_qre_mul(xc, priv->x, cipher_dec);
     dimE = rbc_lrpc_RSR(E, R, priv->F, D, xc->v, N);
     
-    uint8_t hashedE[SECRET_KEY_BYTES];
+    uint8_t hashedE[SECRET_KEY_BYTES] = {0};
     if(dimE != 0) {
       rbc_vec_echelonize(E, R);
       rbc_vec_to_string(support_string, E, R);

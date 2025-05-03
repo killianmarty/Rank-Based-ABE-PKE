@@ -7,7 +7,7 @@ int encrypt(PublicKey *pub, AttributeList * attributes, uint8_t *plaintext, int 
     rbc_qre E1, E2, bf_hash;
     BloomFilter bf_att, bf_keys;
     random_source prng;
-    uint8_t support_string[R_BYTES];
+    uint8_t support_string[R_BYTES] = {0};
     
     // Initialisations
     random_source_init(&prng, RANDOM_SOURCE_PRNG);
@@ -55,7 +55,7 @@ int encrypt(PublicKey *pub, AttributeList * attributes, uint8_t *plaintext, int 
     ciphertext->c.bf_keys = bf_keys;
 
     // Hash E
-    uint8_t hashedE[SECRET_KEY_BYTES];
+    uint8_t hashedE[SECRET_KEY_BYTES] = {0};
     rbc_vec_echelonize(E, R);
     rbc_vec_to_string(support_string, E, R);
     SHA512(support_string, R_BYTES, hashedE);
