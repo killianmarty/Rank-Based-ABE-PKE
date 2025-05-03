@@ -190,13 +190,15 @@ So, it is important to choose parameters that reduces the false positive probabi
 
 ### Performance
 
-Theses benchmarks were performed with the following configuration on `10 000` iterations:
+Theses benchmarks were performed with the following configuration on `1000` iterations:
 - CPU : AMD Ryzen 7 8845HS
 - RAM : 32 Go LPDDR5X-6 400MT/s
 - Architecture : 64 bits
 - Operating system : Debian 12
 
 ### Standard version (x64)
+
+The values are in millions of CPU cycles.
 
 | Security Level | Keygen  | Encrypt | Decrypt |
 |----------------|---------|---------|---------|
@@ -205,6 +207,8 @@ Theses benchmarks were performed with the following configuration on `10 000` it
 | 256            | 254.4   | 19.5    | 269.0   |
 
 ### AVX optimized version
+
+The values are in millions of CPU cycles.
 
 | Security Level | Keygen  | Encrypt | Decrypt |
 |----------------|---------|---------|---------|
