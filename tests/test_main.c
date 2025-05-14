@@ -110,7 +110,7 @@ int test_H_bloomfilter(){
 }
 
 int test_scheme(){
-
+ 
     for (size_t i = 0; i < 100; i++)
     {
         // Declarations
@@ -119,12 +119,13 @@ int test_scheme(){
         CipherText ciphertext;
         uint8_t plaintext[256];
         uint8_t decrypted_plaintext[256];
-
-        AttributeList wanted, available;
-
+ 
+        AttributeList wanted, available, wrong;
+ 
         attribute_list_init(&wanted, 10);
         attribute_list_init(&available, 20);
-
+        attribute_list_init(&wrong, 10);
+ 
         // Generate random policy attributes
         for(int i = 0; i < 10; i++){
             char *key = malloc(sizeof(char)*ATTRIBUTE_KEY_SIZE);
@@ -136,7 +137,7 @@ int test_scheme(){
             free(key);
             free(val);
         }
-
+ 
         // Generate random attributes that does not belong to the policy
         for(int i = 10; i < 20; i++){
             char *key = malloc(sizeof(char)*ATTRIBUTE_KEY_SIZE);
@@ -144,32 +145,40 @@ int test_scheme(){
             generate_random_string(ATTRIBUTE_KEY_SIZE, key);
             generate_random_string(ATTRIBUTE_VALUE_SIZE, val);
             attribute_list_add(&available, key, val);
+            attribute_list_add(&wrong, key, val);
             free(key);
             free(val);
         }
-
+ 
         // Execute the scheme
         keygen(&testPub, &testPriv);
         encrypt(&testPub, &wanted, plaintext, 256, &ciphertext);
         int res = decrypt(&testPriv, &available, &ciphertext, decrypted_plaintext);
-
+ 
         if(res == 0) return 0;
-        
+ 
         // Compare the shared secret
         if (memcmp(plaintext, decrypted_plaintext, 256) != 0)
         {
             return 0;
         }
-        
+ 
+        decrypt(&testPriv, &wrong, &ciphertext, decrypted_plaintext);
+        if (memcmp(plaintext, decrypted_plaintext, 256) == 0)
+        {
+            printf("Decryption successfull with wrong attributes\n");
+            return 0;
+        }
+ 
         // Free memory
         rbc_qre_clear(ciphertext.c.cipher);
         rbc_qre_clear(testPub.h);
         rbc_qre_clear(testPriv.x);
         rbc_qre_clear(testPriv.y);
         rbc_vspace_clear(testPriv.F);
-        
+ 
     }
-
+ 
     return 1;
 }
 

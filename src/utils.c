@@ -147,13 +147,15 @@ CipherText * deserialize_ciphertext(uint8_t *input){
 
 AttributeList * deserialize_attributes(uint8_t *input){
     int lines = 0;
+    uint8_t *start_input = input;
     while (*input) {
         if (*input == '\n') {
             lines++;
         }
         input++;
     }
-    
+    input = start_input;
+
     AttributeList *attributes = calloc(1, sizeof(AttributeList));
     attribute_list_init(attributes, lines);
 
