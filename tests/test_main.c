@@ -111,7 +111,7 @@ int test_H_bloomfilter(){
 
 int test_scheme(){
  
-    for (size_t i = 0; i < 100; i++)
+    for (size_t i = 0; i < 1000; i++)
     {
         // Declarations
         PublicKey testPub;
@@ -407,7 +407,7 @@ int main(){
 
     //Testing complete scheme
     startTime = get_current_time();
-    printf("Testing complete scheme (100 times)... "); fflush(stdout);
+    printf("Testing complete scheme (1000 times)... "); fflush(stdout);
     print_result(startTime, test_scheme());
 
     //Testing serialization
